@@ -1,0 +1,51 @@
+plugin.tx_rlmplanguagedetection_pi1 {
+	defaultLang = 
+	useOneTreeMethod = 1
+	cookieLifetime = 0
+	multipleTreesRootPages {
+		
+	}
+	dontAddSchemeToURL = 0
+	
+	useOldOneTreeConcept = 0
+	
+	languageGPVar = L
+	
+	useLanguageAliases = 1
+	languageAliases {
+		no = dk,sv
+		dk = no,sv
+		sv = no,dk
+	}
+	
+	countryCodeToLanguageCode {
+		us = en
+		gb = en
+		nz = en
+		au = en
+		ie = en
+		ca = en
+		de = de
+		at = de
+		ch = de
+		lu = de
+		li = de
+		se = sv
+		ua = ru
+		by = ru
+	}
+	
+	limitToLanguages = 
+	excludeLanguages = 
+	
+	dontBreakIfLanguageIsAlreadySelected = 0
+	dontBreakIfLastPageWasOnSite = 0
+	
+	testOrder = browser,ip
+	dieAtEnd = 0
+}
+
+# Disable USER_INT when GP:L exists, and the extension anyway isn't needed.
+[globalVar=GP:L=0,GP:L>0]
+plugin.tx_rlmplanguagedetection_pi1 >
+[global]
