@@ -290,7 +290,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 		if (TYPO3_DLOG) {
 			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Location to redirect to: ' . $locationURL, $this->extKey);
 		}
-		if (!$this->conf['dieAtEnd'] && $preferredLanguageOrPageUid != 0) {
+		if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid != 0 || $this->conf['forceRedirect'])) {
 			if (TYPO3_DLOG) {
 				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Perform redirect', $this->extKey);
 			}
