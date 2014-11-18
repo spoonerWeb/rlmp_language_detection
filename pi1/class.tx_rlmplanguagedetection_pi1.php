@@ -234,8 +234,9 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 			}
 		}
 
-		if (TYPO3_DLOG)
+		if (TYPO3_DLOG) {
 			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('END result: Preferred=' . $preferredLanguageOrPageUid, $this->extKey);
+		}
 
 		if ($preferredLanguageOrPageUid !== FALSE)
 			$this->doRedirect($preferredLanguageOrPageUid, $referrer);
