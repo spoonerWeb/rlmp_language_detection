@@ -52,6 +52,9 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 
 		// Break out if language already selected
 		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] && \TYPO3\CMS\Core\Utility\GeneralUtility::_GP($this->conf['languageGPVar']) !== NULL) {
+			if (TYPO3_DLOG) {
+				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
+			}
 			return $content;
 		}
 
@@ -99,6 +102,9 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 
 		//Get available languages
 		$availableLanguagesArr = $this->conf['useOneTreeMethod'] ? $this->getSysLanguages() : $this->getMultipleTreeLanguages();
+		if (TYPO3_DLOG) {
+			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Detecting available languages in installation', $this->extKey, 0, $availableLanguagesArr);
+		}
 
 		//Collect language aliases
 		$languageAliases = array();
@@ -125,6 +131,10 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 				case 'browser':
 					//Get Accepted Languages from Browser
 					$acceptedLanguagesArr = $this->getAcceptedLanguages();
+
+					if (TYPO3_DLOG) {
+						\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
+					}
 
 					//Break out if the default languange is already selected
 					//Thanks to Stefan Mielke
@@ -234,8 +244,9 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 			}
 		}
 
-		if (TYPO3_DLOG)
+		if (TYPO3_DLOG) {
 			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('END result: Preferred=' . $preferredLanguageOrPageUid, $this->extKey);
+		}
 
 		if ($preferredLanguageOrPageUid !== FALSE)
 			$this->doRedirect($preferredLanguageOrPageUid, $referrer);
@@ -279,7 +290,10 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 		if (TYPO3_DLOG) {
 			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Location to redirect to: ' . $locationURL, $this->extKey);
 		}
-		if (!$this->conf['dieAtEnd'] && $preferredLanguageOrPageUid != 0) {
+		if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid != 0 || $this->conf['forceRedirect'])) {
+			if (TYPO3_DLOG) {
+				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Perform redirect', $this->extKey);
+			}
 			header('Location: ' . $locationURL);
 			//header('Referer: '.$locationURL);
 			header('Connection: close');
