@@ -207,7 +207,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 								}
 								$preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
 								//Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
-							} elseif (\TYPO3\CMS\Core\Utility\GeneralUtility::isLoaded('static_info_tables')) {
+							} elseif (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
 								if (TYPO3_DLOG) {
 									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
 								}
