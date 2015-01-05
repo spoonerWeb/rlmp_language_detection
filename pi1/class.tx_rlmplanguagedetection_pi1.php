@@ -1,28 +1,16 @@
 <?php
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2003-2006 robert lemke medienprojekte (rl@robertlemke.de)
- *  (c) 2008 Mathias Bolt Lesniak, LiliO Design (mathias@lilio.com)
- *  (c) 2010 Joachim Mathes, punkt.de GmbH (t3extensions@punkt.de)
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the Typo3 project. The Typo3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 /**
  * Plugin 'Language Detection' for the 'rlmp_language_detection' extension.
@@ -30,12 +18,29 @@
  * @author    robert lemke medienprojekte <rl@robertlemke.de>
  * @author    Mathias Bolt Lesniak, LiliO Design <mathias@lilio.com>
  * @author    Joachim Mathes, punkt.de GmbH <t3extensions@punkt.de>
+ * @author    Thomas Löffler <loeffler@spooner-web.de>
  */
-class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
-	var $prefixId = 'tx_rlmplanguagedetection_pi1'; // Same as class name
-	var $scriptRelPath = 'pi1/class.tx_rlmplanguagedetection_pi1.php'; // Path to this script relative to the extension dir.
-	var $extKey = 'rlmp_language_detection'; // The extension key.
-	var $conf = array();
+class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
+
+	/**
+	 * @var string
+	 */
+	public $prefixId = 'tx_rlmplanguagedetection_pi1';
+
+	/**
+	 * @var string
+	 */
+	public $scriptRelPath = 'pi1/class.tx_rlmplanguagedetection_pi1.php';
+
+	/**
+	 * @var string
+	 */
+	public $extKey = 'rlmp_language_detection';
+
+	/**
+	 * @var array
+	 */
+	public $conf = array();
 
 	/**
 	 * The main function recognizes the browser's preferred languages and
@@ -46,7 +51,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 *
 	 * @return    string
 	 */
-	function main($content, $conf) {
+	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = intval($conf['cookieLifetime']);
 
@@ -252,7 +257,12 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 			$this->doRedirect($preferredLanguageOrPageUid, $referrer);
 	}
 
-	private function doRedirect($preferredLanguageOrPageUid, $referer) {
+	/**
+	 * @param integer $preferredLanguageOrPageUid
+	 * @param string $referer
+	 * @return void
+	 */
+	protected function doRedirect($preferredLanguageOrPageUid, $referer) {
 		if ($this->conf['useOneTreeMethod']) {
 			$page = $GLOBALS['TSFE']->page;
 		} else {
@@ -318,7 +328,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 *
 	 * @return    array    An array containing the accepted languages; key and value = iso code, sorted by quality
 	 */
-	function getAcceptedLanguages() {
+	protected function getAcceptedLanguages() {
 		$languagesArr = array();
 		$rawAcceptedLanguagesArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
 			',',
@@ -347,9 +357,8 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 * Returns an array of sys_language records containing the ISO code as the key and the record's uid as the value
 	 *
 	 * @return    array    sys_language records: ISO code => uid of sys_language record
-	 * @access    private
 	 */
-	function getSysLanguages() {
+	protected function getSysLanguages() {
 		$availableLanguages = array();
 
 		if (strlen($this->conf['defaultLang'])) {
@@ -441,17 +450,19 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 * Acts as an alternative for getSysLanguages ()
 	 *
 	 * @return    array    available languages: ISO code => Page ID of languages' root page
-	 * @access    private
 	 */
-	function getMultipleTreeLanguages() {
+	protected function getMultipleTreeLanguages() {
 		foreach ($this->conf['multipleTreesRootPages.'] as $isoCode => $uid) {
 			$availableLanguages [trim(strtolower($isoCode))] = intval($uid);
 		}
 		return $availableLanguages;
 	}
 
-
-	function getLanguageCodesForCountry($countryCode) {
+	/**
+	 * @param string $countryCode
+	 * @return array
+	 */
+	protected function getLanguageCodesForCountry($countryCode) {
 		$staticInfoObj = & \TYPO3\CMS\Core\Utility\GeneralUtility::getUserObj('&tx_staticinfotables_pi1');
 		if ($staticInfoObj->needsInit()) {
 			$staticInfoObj->init();
@@ -474,7 +485,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 *
 	 * @return    string    IP address
 	 */
-	function getUserIP() {
+	protected function getUserIP() {
 		return \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('REMOTE_ADDR');
 	}
 
@@ -487,7 +498,7 @@ class tx_rlmplanguagedetection_pi1 extends tslib_pibase {
 	 *
 	 * @return    void
 	 */
-	function test_preferredLanguageHooks($availableLanguagesArr, $parentObject) {
+	protected function test_preferredLanguageHooks($availableLanguagesArr, $parentObject) {
 		debug($availableLanguagesArr);
 		debug($parentObject);
 		die();
