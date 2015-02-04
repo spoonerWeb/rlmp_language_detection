@@ -1,5 +1,5 @@
 plugin.tx_rlmplanguagedetection_pi1 {
-	defaultLang = 
+	defaultLang =
 	useOneTreeMethod = 1
 	cookieLifetime = 0
 	multipleTreesRootPages {
@@ -48,5 +48,5 @@ plugin.tx_rlmplanguagedetection_pi1 {
 
 # Disable USER_INT when GP:L exists, and the extension anyway isn't needed.
 [globalVar=GP:L=0,GP:L>0]
-plugin.tx_rlmplanguagedetection_pi1 >
+	plugin.tx_rlmplanguagedetection_pi1 >
 [global]

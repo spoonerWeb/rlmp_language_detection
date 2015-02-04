@@ -12,6 +12,14 @@
  * The TYPO3 project - inspiring people to share!
  */
 
+namespace Rlmp\RlmpLanguageDetection;
+
+use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
+
 /**
  * Plugin 'Language Detection' for the 'rlmp_language_detection' extension.
  *
@@ -19,8 +27,9 @@
  * @author    Mathias Bolt Lesniak, LiliO Design <mathias@lilio.com>
  * @author    Joachim Mathes, punkt.de GmbH <t3extensions@punkt.de>
  * @author    Thomas Löffler <loeffler@spooner-web.de>
+ * @author    Markus Klein <klein.t3@reelworx.at>
  */
-class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPlugin {
+class LanguageDetection extends AbstractPlugin {
 
 	/**
 	 * @var string
@@ -43,36 +52,40 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 	public $conf = array();
 
 	/**
+	 * @var int
+	 */
+	protected $cookieLifetime = 0;
+
+	/**
 	 * The main function recognizes the browser's preferred languages and
 	 * reloads the page accordingly. Exits if successful.
 	 *
-	 * @param    string $content : HTML content
-	 * @param    array  $conf    : The mandatory configuration array
-	 *
-	 * @return    string
+	 * @param string $content HTML content
+	 * @param array $conf The mandatory configuration array
+	 * @return string
 	 */
 	public function main($content, $conf) {
 		$this->conf = $conf;
-		$this->cookieLifetime = intval($conf['cookieLifetime']);
+		$this->cookieLifetime = (int)$conf['cookieLifetime'];
 
 		// Break out if language already selected
-		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] && \TYPO3\CMS\Core\Utility\GeneralUtility::_GP($this->conf['languageGPVar']) !== NULL) {
+		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] && GeneralUtility::_GP($this->conf['languageGPVar']) !== NULL) {
 			if (TYPO3_DLOG) {
-				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
+				GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
 			}
 			return $content;
 		}
 
 		// Break out if the last page visited was also on our site:
-		$referrer = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('HTTP_REFERER');
+		$referrer = (string)GeneralUtility::getIndpEnv('HTTP_REFERER');
 		if (TYPO3_DLOG) {
-			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Referer: ' . $referrer, $this->extKey);
+			GeneralUtility::devLog('Referer: ' . $referrer, $this->extKey);
 		}
-		if (!$this->conf['dontBreakIfLastPageWasOnSite'] && strlen($referrer) && (
-				stripos($referrer, \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL')) !== FALSE ||
-				stripos($referrer, $GLOBALS['TSFE']->baseUrl) !== FALSE ||
-				stripos($referrer . '/', \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL')) !== FALSE ||
-				stripos($referrer . '/', $GLOBALS['TSFE']->baseUrl) !== FALSE
+		if (!$this->conf['dontBreakIfLastPageWasOnSite'] && $referrer !== '' && (
+				stripos($referrer, GeneralUtility::getIndpEnv('TYPO3_SITE_URL')) !== FALSE ||
+				stripos($referrer, $this->getTSFE()->baseUrl) !== FALSE ||
+				stripos($referrer . '/', GeneralUtility::getIndpEnv('TYPO3_SITE_URL')) !== FALSE ||
+				stripos($referrer . '/', $this->getTSFE()->baseUrl) !== FALSE
 			)
 		) {
 			return $content;
@@ -96,7 +109,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 				// Can redirect only in one tree method for now
 				if ($this->conf['useOneTreeMethod'] && is_numeric($langSessKey)) {
 					$this->doRedirect($langSessKey, $referrer);
-					return;
+					return '';
 				}
 
 				return $content;
@@ -108,7 +121,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 		//Get available languages
 		$availableLanguagesArr = $this->conf['useOneTreeMethod'] ? $this->getSysLanguages() : $this->getMultipleTreeLanguages();
 		if (TYPO3_DLOG) {
-			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Detecting available languages in installation', $this->extKey, 0, $availableLanguagesArr);
+			GeneralUtility::devLog('Detecting available languages in installation', $this->extKey, 0, $availableLanguagesArr);
 		}
 
 		//Collect language aliases
@@ -116,7 +129,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 		if ($this->conf['useLanguageAliases']) {
 			$tmp = $conf['languageAliases.'];
 			foreach ($tmp as $key => $languageAlias) {
-				$languageAliases[strtolower($key)] = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
+				$languageAliases[strtolower($key)] = GeneralUtility::trimExplode(
 					',', //Delimiter string to explode with
 					strtolower($languageAlias), //The string to explode
 					TRUE //If set, all empty values (='') will NOT be set in output
@@ -124,7 +137,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 			}
 		}
 
-		$testOrder = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
+		$testOrder = GeneralUtility::trimExplode(
 			',', //Delimiter string to explode with
 			$conf['testOrder'], //The string to explode
 			TRUE //If set, all empty values (='') will NOT be set in output
@@ -138,7 +151,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 					$acceptedLanguagesArr = $this->getAcceptedLanguages();
 
 					if (TYPO3_DLOG) {
-						\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
+						GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
 					}
 
 					//Break out if the default languange is already selected
@@ -154,13 +167,13 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 						$currentLanguage = array_values($acceptedLanguagesArr);
 						$currentLanguage = $currentLanguage[$j];
 						if (TYPO3_DLOG) {
-							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Testing language: ' . $currentLanguage, $this->extKey);
+							GeneralUtility::devLog('Testing language: ' . $currentLanguage, $this->extKey);
 						}
 						//If the current language is available (full "US_en" type check)
 						if (isset($availableLanguagesArr[$currentLanguage])) {
 							$preferredLanguageOrPageUid = $availableLanguagesArr[$currentLanguage];
 							if (TYPO3_DLOG) {
-								\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (full check)', $this->extKey);
+								GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (full check)', $this->extKey);
 							}
 							break;
 						}
@@ -170,7 +183,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 							if (isset($availableLanguagesArr[$currentLanguageShort])) {
 								$preferredLanguageOrPageUid = $availableLanguagesArr[$currentLanguageShort];
 								if (TYPO3_DLOG) {
-									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (normal check)', $this->extKey);
+									GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (normal check)', $this->extKey);
 								}
 								break;
 							}
@@ -180,10 +193,10 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 							$values = $languageAliases[$currentLanguage];
 							//Iterate through aliases and choose the first possible
 							foreach ($values as $value) {
-								if (array_key_exists($value, $availableLanguagesArr)) {
+								if (isset($availableLanguagesArr[$value])) {
 									$preferredLanguageOrPageUid = $availableLanguagesArr[$value];
 									if (TYPO3_DLOG) {
-										\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (alias check)', $this->extKey);
+										GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (alias check)', $this->extKey);
 									}
 									break 2;
 								}
@@ -193,28 +206,29 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 					break;
 				//GeoIP
 				case 'ip':
-					if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('ml_geoip')) {
-						$geoip = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tx_mlgeoip');
+					if (ExtensionManagementUtility::isLoaded('ml_geoip')) {
+						/** @var \tx_mlgeoip $geoip */
+						$geoip = GeneralUtility::makeInstance('tx_mlgeoip');
 						//Get country code from geoip
 						if (TYPO3_DLOG) {
-							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
+							GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
 						}
 						$countryCode = strtolower($geoip->getCountryCodeByAddress($this->getUserIP()));
 						if (TYPO3_DLOG) {
-							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
+							GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
 						}
 						unset($geoip);
 						if ($countryCode) {
 							//Check for the country code in the configured list of country to languages
 							if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.']) && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)) {
 								if (TYPO3_DLOG) {
-									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
+									GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
 								}
 								$preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
 								//Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
-							} elseif (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
+							} elseif (ExtensionManagementUtility::isLoaded('static_info_tables')) {
 								if (TYPO3_DLOG) {
-									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
+									GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
 								}
 								//Get the language codes from lg_collate_locate
 								$values = $this->getLanguageCodesForCountry($countryCode);
@@ -222,7 +236,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 									//If one of the languages exist
 									if (array_key_exists($value, $availableLanguagesArr)) {
 										if (TYPO3_DLOG) {
-											\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
+											GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
 										}
 										$preferredLanguageOrPageUid = $availableLanguagesArr[$value];
 										break;
@@ -238,7 +252,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 					if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks'])) {
 						foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks'] as $key => $_funcRef) {
 							if ($key == $testOrder[$i]) {
-								$preferredLanguageOrPageUid = t3lib_div::callUserFunction($_funcRef, $availableLanguagesArr, $this);
+								$preferredLanguageOrPageUid = GeneralUtility::callUserFunction($_funcRef, $availableLanguagesArr, $this);
 								if ($preferredLanguageOrPageUid) {
 									break;
 								}
@@ -250,34 +264,36 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 		}
 
 		if (TYPO3_DLOG) {
-			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('END result: Preferred=' . $preferredLanguageOrPageUid, $this->extKey);
+			GeneralUtility::devLog('END result: Preferred=' . $preferredLanguageOrPageUid, $this->extKey);
 		}
 
-		if ($preferredLanguageOrPageUid !== FALSE)
+		if ($preferredLanguageOrPageUid !== FALSE) {
 			$this->doRedirect($preferredLanguageOrPageUid, $referrer);
+		}
+		return '';
 	}
 
 	/**
-	 * @param integer $preferredLanguageOrPageUid
-	 * @param string $referer
+	 * @param int $preferredLanguageOrPageUid
+	 * @param string $referrer
 	 * @return void
 	 */
-	protected function doRedirect($preferredLanguageOrPageUid, $referer) {
+	protected function doRedirect($preferredLanguageOrPageUid, $referrer) {
 		if ($this->conf['useOneTreeMethod']) {
-			$page = $GLOBALS['TSFE']->page;
+			$page = $this->getTSFE()->page;
 		} else {
-			$sys_page = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('t3lib_pageSelect');
+			/** @var \TYPO3\CMS\Frontend\Page\PageRepository $sys_page */
+			$sys_page = GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Page\\PageRepository');
 			$sys_page->init(0);
 			$page = $sys_page->getPage($preferredLanguageOrPageUid);
 		}
-		$linkData = $GLOBALS['TSFE']->tmpl->linkData($page, '', 0, '', array(), '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid . "&" . \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('QUERY_STRING'));
-		$locationURL = $this->conf['dontAddSchemeToURL'] ? $linkData['totalURL'] : \TYPO3\CMS\Core\Utility\GeneralUtility::locationHeaderUrl($linkData['totalURL']);
+		$linkData = $this->getTSFE()->tmpl->linkData($page, '', 0, '', array(), '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid . '&' . GeneralUtility::getIndpEnv('QUERY_STRING'));
 
 		//Prefer the base URL if available
-		if (strlen($GLOBALS['TSFE']->baseUrl) > 1) {
-			$locationURL = $GLOBALS['TSFE']->baseURLWrap($linkData['totalURL']);
+		if (strlen($this->getTSFE()->baseUrl) > 1) {
+			$locationURL = $this->getTSFE()->baseURLWrap($linkData['totalURL']);
 		} else {
-			$locationURL = $this->conf['dontAddSchemeToURL'] ? $linkData['totalURL'] : \TYPO3\CMS\Core\Utility\GeneralUtility::locationHeaderUrl($linkData['totalURL']);
+			$locationURL = $this->conf['dontAddSchemeToURL'] ? $linkData['totalURL'] : GeneralUtility::locationHeaderUrl($linkData['totalURL']);
 		}
 
 		//Set session info
@@ -294,23 +310,22 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 				$this->extKey . '_languageSelected',
 				$this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : TRUE
 			);
-			$GLOBALS['TSFE']->storeSessionData();
+			$this->getTSFE()->storeSessionData();
 		}
 
 		if (TYPO3_DLOG) {
-			\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Location to redirect to: ' . $locationURL, $this->extKey);
+			GeneralUtility::devLog('Location to redirect to: ' . $locationURL, $this->extKey);
 		}
-		if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid != 0 || $this->conf['forceRedirect'])) {
+		if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid || $this->conf['forceRedirect'])) {
 			if (TYPO3_DLOG) {
-				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Perform redirect', $this->extKey);
+				GeneralUtility::devLog('Perform redirect', $this->extKey);
 			}
 			header('Location: ' . $locationURL);
-			//header('Referer: '.$locationURL);
 			header('Connection: close');
-			header('X-Note: Redirect by rlmp_language_detection (' . $referer . ')');
+			header('X-Note: Redirect by rlmp_language_detection (' . $referrer . ')');
 		}
 
-		if ($preferredLanguageOrPageUid != 0) {
+		if ($preferredLanguageOrPageUid) {
 			die();
 		}
 	}
@@ -326,17 +341,18 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 	 * defines a priority. If no q-value is given, '1' is assumed. The q-value
 	 * is separated from the language code by a semicolon (;) (e.g. 'de;q=0.7')
 	 *
-	 * @return    array    An array containing the accepted languages; key and value = iso code, sorted by quality
+	 * @return array An array containing the accepted languages; key and value = iso code, sorted by quality
 	 */
 	protected function getAcceptedLanguages() {
 		$languagesArr = array();
-		$rawAcceptedLanguagesArr = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
+		$rawAcceptedLanguagesArr = GeneralUtility::trimExplode(
 			',',
-			\TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('HTTP_ACCEPT_LANGUAGE'),
-			1
+			GeneralUtility::getIndpEnv('HTTP_ACCEPT_LANGUAGE'),
+			TRUE
 		);
+		$acceptedLanguagesArr = array();
 		foreach ($rawAcceptedLanguagesArr as $languageAndQualityStr) {
-			list($languageCode, $quality) = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(';', $languageAndQualityStr);
+			list($languageCode, $quality) = GeneralUtility::trimExplode(';', $languageAndQualityStr);
 			$acceptedLanguagesArr[$languageCode] = $quality ? (float)substr($quality, 2) : (float)1;
 		}
 
@@ -356,7 +372,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 	/**
 	 * Returns an array of sys_language records containing the ISO code as the key and the record's uid as the value
 	 *
-	 * @return    array    sys_language records: ISO code => uid of sys_language record
+	 * @return array sys_language records: ISO code => uid of sys_language record
 	 */
 	protected function getSysLanguages() {
 		$availableLanguages = array();
@@ -369,42 +385,43 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 		// to detect the language. But if the static_languages is installed and the sys_language record points to the correct
 		// language, we can use that information instead.
 
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+		$res = $this->getDB()->exec_SELECTquery(
 			'lg_iso_2',
 			'static_languages',
 			'1=1'
 		);
 		if (!$this->conf['useOldOneTreeConcept'] && $res) {
 			// Table and field exist so create query for the new approach:
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			$res = $this->getDB()->exec_SELECTquery(
 				'sys_language.uid, static_languages.lg_iso_2 as isocode',
 				'sys_language LEFT JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
 				'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
 			);
 		} else {
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			$res = $this->getDB()->exec_SELECTquery(
 				'sys_language.uid, sys_language.title as isocode',
 				'sys_language',
 				'1=1' . $this->cObj->enableFields('sys_language')
 			);
 		}
-		while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+		while ($row = $this->getDB()->sql_fetch_assoc($res)) {
 			if (TYPO3_DLOG && !$row['isocode']) {
-				\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
+				GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
 			}
 			$availableLanguages[$row['uid']] = trim(strtolower($row['isocode']));
 		}
 
-		// Get the isocodes associated with the available sys_languade uid's
+		// Get the isocodes associated with the available sys_language uids
 		if (is_array($availableLanguages)) {
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+			$res = $this->getDB()->exec_SELECTquery(
 				'sys_language.uid, static_languages.lg_iso_2 as isocode, static_languages.lg_country_iso_2',
 				'sys_language LEFT JOIN static_languages ON sys_language.static_lang_isocode=static_languages.uid',
 				'sys_language.uid IN(' . implode(',', array_keys($availableLanguages)) . ')' .
 				$this->cObj->enableFields('sys_language') .
 				$this->cObj->enableFields('static_languages')
 			);
-			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+			$tmpLanguages = array();
+			while ($row = $this->getDB()->sql_fetch_assoc($res)) {
 				$tmpLanguages[trim(strtolower($row['isocode'] . ($row['lg_country_iso_2'] ? '-' . $row['lg_country_iso_2'] : '')))] = $row['uid'];
 			}
 			$availableLanguages = $tmpLanguages;
@@ -412,7 +429,7 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 
 		//Remove all languages except limitToLanguages
 		if ($this->conf['limitToLanguages'] != '') {
-			$limitToLanguages = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
+			$limitToLanguages = GeneralUtility::trimExplode(
 				',', //Delimiter string to explode with
 				strtolower($this->conf['limitToLanguages']), //The string to explode
 				TRUE //If set, all empty values (='') will NOT be set in output
@@ -429,14 +446,14 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 
 		//Remove all languages in the exclude list
 		if ($this->conf['excludeLanguages'] != '') {
+			$excludeLanguages = array();
 			if ($this->conf['excludeLanguages'] != '') {
-				$excludeLanguages = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(
+				$excludeLanguages = GeneralUtility::trimExplode(
 					',', //Delimiter string to explode with
 					strtolower($this->conf['excludeLanguages']), //The string to explode
 					TRUE //If set, all empty values (='') will NOT be set in output
 				);
 			}
-			$tmp = array();
 			foreach ($excludeLanguages as $excludeLanguage) {
 				unset($availableLanguages[$excludeLanguage]);
 			}
@@ -449,11 +466,12 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 	 * Returns an array of available languages defined in the TypoScript configuration for this plugin.
 	 * Acts as an alternative for getSysLanguages ()
 	 *
-	 * @return    array    available languages: ISO code => Page ID of languages' root page
+	 * @return array Available languages: ISO code => Page ID of languages' root page
 	 */
 	protected function getMultipleTreeLanguages() {
+		$availableLanguages = array();
 		foreach ($this->conf['multipleTreesRootPages.'] as $isoCode => $uid) {
-			$availableLanguages [trim(strtolower($isoCode))] = intval($uid);
+			$availableLanguages[trim(strtolower($isoCode))] = (int)$uid;
 		}
 		return $availableLanguages;
 	}
@@ -463,49 +481,55 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 	 * @return array
 	 */
 	protected function getLanguageCodesForCountry($countryCode) {
-		$staticInfoObj = & \TYPO3\CMS\Core\Utility\GeneralUtility::getUserObj('&tx_staticinfotables_pi1');
+		/** @var \SJBR\StaticInfoTables\PiBaseApi $staticInfoObj */
+		$staticInfoObj = GeneralUtility::makeInstance('SJBR\\StaticInfoTables\\PiBaseApi');
 		if ($staticInfoObj->needsInit()) {
 			$staticInfoObj->init();
 		}
-		$languages = $staticInfoObj->initLanguages(' lg_collate_locale LIKE \'%_' . $GLOBALS['TYPO3_DB']->quoteStr(
+		$languages = $staticInfoObj->initLanguages(' lg_collate_locale LIKE \'%_' . $this->getDB()->quoteStr(
 				strtoupper($countryCode), //Input string
 				'static_languages' //Table name for which to quote string. Just enter the table that the field-value is selected from (and any DBAL will look up which handler to use and then how to quote the string!).
 			) . '\' ');
 
-		$tmp = array();
-		foreach ($languages as $key => $value) {
-			$tmp[] = strtolower($key);
-		}
-
-		return $tmp;
+		return array_map('strtolower', array_keys($languages));
 	}
 
 	/**
 	 * Returns the user's IP
 	 *
-	 * @return    string    IP address
+	 * @return string IP address
 	 */
 	protected function getUserIP() {
-		return \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('REMOTE_ADDR');
+		return GeneralUtility::getIndpEnv('REMOTE_ADDR');
+	}
+
+	/**
+	 * @return TypoScriptFrontendController
+	 */
+	protected function getTSFE() {
+		return $GLOBALS['TSFE'];
+	}
+
+	/**
+	 * @return DatabaseConnection
+	 */
+	protected function getDB() {
+		return $GLOBALS['TYPO3_DB'];
 	}
 
 	/**
 	 * Test function for preferredLanguageHooks
 	 * Prints arguments and dies.
 	 *
-	 * @param    array         Associative array containing available languages. Key is ISO 639-1 language code. Value is TYPO3 Website Language UID.
-	 * @param    object        Reference to the calling object.
+	 * @param array $availableLanguagesArr Associative array containing available languages. Key is ISO 639-1 language code. Value is TYPO3 Website Language UID.
+	 * @param LanguageDetection $parentObject Reference to the calling object.
 	 *
-	 * @return    void
+	 * @return void
 	 */
-	protected function test_preferredLanguageHooks($availableLanguagesArr, $parentObject) {
+	public function test_preferredLanguageHooks($availableLanguagesArr, LanguageDetection $parentObject) {
 		debug($availableLanguagesArr);
 		debug($parentObject);
 		die();
 	}
 
-}
-
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rlmp_language_detection/pi1/class.tx_rlmplanguagedetection_pi1.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/rlmp_language_detection/pi1/class.tx_rlmplanguagedetection_pi1.php']);
 }
