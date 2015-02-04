@@ -79,7 +79,7 @@ class LanguageDetection extends AbstractPlugin {
 		// Break out if the last page visited was also on our site:
 		$referrer = (string)GeneralUtility::getIndpEnv('HTTP_REFERER');
 		if (TYPO3_DLOG) {
-			GeneralUtility::devLog('Referer: ' . $referrer, $this->extKey);
+			GeneralUtility::devLog('Referrer: ' . $referrer, $this->extKey);
 		}
 		if (!$this->conf['dontBreakIfLastPageWasOnSite'] && $referrer !== '' && (
 				stripos($referrer, GeneralUtility::getIndpEnv('TYPO3_SITE_URL')) !== FALSE ||
@@ -95,9 +95,9 @@ class LanguageDetection extends AbstractPlugin {
 		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected']) {
 			if ($this->cookieLifetime) {
 				// read from browser-cookie
-				$langSessKey = $_COOKIE[$this->extKey . '_languageSelected'];
+				$languageSessionKey = $_COOKIE[$this->extKey . '_languageSelected'];
 			} else {
-				$langSessKey = $GLOBALS["TSFE"]->fe_user->getKey(
+				$languageSessionKey = $this->getTSFE()->fe_user->getKey(
 					'ses',
 					$this->extKey . '_languageSelected'
 				);
@@ -105,10 +105,10 @@ class LanguageDetection extends AbstractPlugin {
 
 			// If session key exists but no language GP var -
 			// we should redirect client to selected language
-			if (isset($langSessKey)) {
+			if (isset($languageSessionKey)) {
 				// Can redirect only in one tree method for now
-				if ($this->conf['useOneTreeMethod'] && is_numeric($langSessKey)) {
-					$this->doRedirect($langSessKey, $referrer);
+				if ($this->conf['useOneTreeMethod'] && is_numeric($languageSessionKey)) {
+					$this->doRedirect($languageSessionKey, $referrer);
 					return '';
 				}
 
@@ -305,7 +305,7 @@ class LanguageDetection extends AbstractPlugin {
 				$this->cookieLifetime + time()
 			);
 		} else {
-			$GLOBALS["TSFE"]->fe_user->setKey(
+			$this->getTSFE()->fe_user->setKey(
 				'ses',
 				$this->extKey . '_languageSelected',
 				$this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : TRUE
@@ -526,7 +526,7 @@ class LanguageDetection extends AbstractPlugin {
 	 *
 	 * @return void
 	 */
-	public function test_preferredLanguageHooks($availableLanguagesArr, LanguageDetection $parentObject) {
+	public function testPreferredLanguageHooks($availableLanguagesArr, LanguageDetection $parentObject) {
 		debug($availableLanguagesArr);
 		debug($parentObject);
 		die();

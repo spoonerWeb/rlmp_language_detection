@@ -38,7 +38,7 @@ It could be enabled by adding the string ``test`` to the testOrder TypoScript pr
 
 ::
 
-   $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks']['test'] = 'Rlmp\\RlmpLanguageDetection\\LanguageDetection->test_preferredLanguageHooks';
+   $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks']['test'] = 'Rlmp\\RlmpLanguageDetection\\LanguageDetection->testPreferredLanguageHooks';
 
 The function must support the following arguments and return values:
 
@@ -50,4 +50,4 @@ The function must support the following arguments and return values:
 	 *
 	 * @return int/bool Website Language UID if successful, otherwise FALSE
 	 */
-	public function test_preferredLanguageHooks($availableLanguagesArr, LanguageDetection $parentObject) {
+	public function testPreferredLanguageHooks($availableLanguagesArr, LanguageDetection $parentObject) {
