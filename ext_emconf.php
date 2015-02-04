@@ -16,32 +16,20 @@ $EM_CONF[$_EXTKEY] = array(
 	'category' => 'misc',
 	'shy' => 0,
 	'version' => '3.0.0',
-	'dependencies' => '',
-	'conflicts' => '',
-	'priority' => '',
-	'loadOrder' => '',
-	'module' => '',
 	'state' => 'stable',
 	'uploadfolder' => 0,
 	'createDirs' => '',
-	'modify_tables' => '',
-	'clearcacheonload' => 0,
-	'lockType' => '',
 	'author' => 'Thomas Löffler',
 	'author_email' => 'thomas.loeffler@typo3.org',
 	'author_company' => '',
-	'CGLcompliance' => '',
-	'CGLcompliance_note' => '',
 	'constraints' => array(
 		'depends' => array(
-			'typo3' => '6.2.0-6.2.99',
+			'typo3' => '6.2.0-7.1.99',
 		),
 		'conflicts' => array(
 		),
 		'suggests' => array(
+			'ml_geoip' => ''
 		),
 	),
-	'_md5_values_when_last_written' => 'a:5:{s:12:"ext_icon.gif";s:4:"184c";s:17:"ext_localconf.php";s:4:"bddb";s:24:"ext_typoscript_setup.txt";s:4:"935c";s:14:"doc/manual.sxw";s:4:"1a0f";s:42:"pi1/class.tx_rlmplanguagedetection_pi1.php";s:4:"62e0";}',
 );
-
-?>
