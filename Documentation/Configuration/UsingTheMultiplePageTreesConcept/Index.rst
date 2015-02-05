@@ -24,7 +24,7 @@ likely choose the multiple page tree method.
 In order to enable it, you'll have to add some TypoScript to the setup
 field of your root template. Just have a look at the example:
 
-::
+.. code-block:: typoscript
 
    plugin.tx_rlmplanguagedetection_pi1 {
       useOneTreeMethod = 0
@@ -41,4 +41,3 @@ page for each language.
 
 In our example visitors who prefer spanish will automatically guided
 to the page with the id 482 if they enter the website.
-
