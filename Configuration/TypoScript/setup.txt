@@ -1,4 +1,7 @@
+plugin.tx_rlmplanguagedetection_pi1 = USER_INT
 plugin.tx_rlmplanguagedetection_pi1 {
+	userFunc = Rlmp\RlmpLanguageDetection\LanguageDetection->main
+
 	defaultLang =
 	useOneTreeMethod = 1
 	cookieLifetime = 0
