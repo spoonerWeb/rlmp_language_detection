@@ -193,13 +193,12 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 					break;
 				//GeoIP
 				case 'ip':
-					if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('ml_geoip')) {
-						$geoip = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('tx_mlgeoip');
-						//Get country code from geoip
+					if (function_exists('geoip_country_code_by_name')) {
+						// Get country code from geoip
 						if (TYPO3_DLOG) {
 							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
 						}
-						$countryCode = strtolower($geoip->getCountryCodeByAddress($this->getUserIP()));
+						$countryCode = strtolower(geoip_country_code_by_name($this->getUserIP()));
 						if (TYPO3_DLOG) {
 							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
 						}
