@@ -31,23 +31,3 @@ Extension Manager (EM) and click on the install button.
       page = PAGE
       ...
       page.987 =< plugin.tx_rlmplanguagedetection_pi1
-
-Suggested plugins
------------------
-
-ml\_geoip
-^^^^^^^^^
-
-You may want to install the suggested extensions to enable language
-check by IP address, especially GeoIP Libraries (ml\_geoip):
-`http://typo3.org/extensions/repository/view/ml\_geoip/current/
-<http://typo3.org/extensions/repository/view/ml_geoip/current/>`_
-
-Please read the GeoIP Libraries manual to set up this extension
-properly.
-
-static_info_tables
-^^^^^^^^^^^^^^^^^^
-
-This is a very useful extension, which provides detailed information about
-languages and ISO codes.
