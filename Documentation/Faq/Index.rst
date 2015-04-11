@@ -34,3 +34,24 @@ Wikipedia offers a list of the ISO 639-1 codes. The actual codes used
 depends on the version of static\_info\_tables you have installed.
 Using the latest version is of course recommended.
 
+
+How can I use the PEAR package Net_GeoIP?
+"""""""""""""""""""""""""""""""""""""""""
+
+You have to install the PEAR package `Net_GeoIP`_.
+After that you only need a GeoIP database to get the origin country by
+the visitor's IP address.
+A database (with CC license) can be found on the website of `Maxmind`_.
+After that you have to define the path to this database file in
+TypoScript:
+
+.. code-block:: typoscript
+
+   plugin.tx_rlmplanguagedetection_pi1 {
+      pathToDatabaseForGeoIPData = EXT:another_extension/path/to/file
+   }
+
+
+
+.. _Net_GeoIP: https://pear.php.net/package/Net_GeoIP
+.. _Maxmind: http://dev.maxmind.com/geoip/legacy/geolite/
