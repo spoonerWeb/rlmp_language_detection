@@ -193,7 +193,30 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 					break;
 				//GeoIP
 				case 'ip':
-					if (function_exists('geoip_country_code_by_name')) {
+					$countryCode = '';
+
+					// check for PEAR Package Net_GeoIP
+					if (defined('PEAR_INSTALL_DIR')
+						&& file_exists(PEAR_INSTALL_DIR . '/Net/GeoIP')
+						&& $this->conf['pathToDatabaseForGeoIPData']) {
+						require_once PEAR_INSTALL_DIR . '/Net/GeoIP.php';
+						$pathToDatabase = \TYPO3\CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
+							$this->conf['pathToDatabaseForGeoIPData']
+						);
+						$geoIp = new Net_GeoIP($pathToDatabase);
+						// Get country code from geoip
+						if (TYPO3_DLOG) {
+							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
+						}
+						$countryCode = strtolower($geoIp->lookupCountryCode($this->getUserIP()));
+						if (TYPO3_DLOG) {
+							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
+						}
+						unset($geoIp);
+					}
+
+					// PHP module geoip
+					if (!$countryCode && function_exists('geoip_country_code_by_name')) {
 						// Get country code from geoip
 						if (TYPO3_DLOG) {
 							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
@@ -202,30 +225,30 @@ class tx_rlmplanguagedetection_pi1 extends \TYPO3\CMS\Frontend\Plugin\AbstractPl
 						if (TYPO3_DLOG) {
 							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
 						}
-						unset($geoip);
-						if ($countryCode) {
-							//Check for the country code in the configured list of country to languages
-							if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.']) && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)) {
-								if (TYPO3_DLOG) {
-									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
-								}
-								$preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
-								//Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
-							} elseif (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
-								if (TYPO3_DLOG) {
-									\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
-								}
-								//Get the language codes from lg_collate_locate
-								$values = $this->getLanguageCodesForCountry($countryCode);
-								foreach ($values as $value) {
-									//If one of the languages exist
-									if (array_key_exists($value, $availableLanguagesArr)) {
-										if (TYPO3_DLOG) {
-											\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
-										}
-										$preferredLanguageOrPageUid = $availableLanguagesArr[$value];
-										break;
+					}
+
+					if ($countryCode) {
+						//Check for the country code in the configured list of country to languages
+						if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.']) && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)) {
+							if (TYPO3_DLOG) {
+								\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
+							}
+							$preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
+							//Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
+						} elseif (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
+							if (TYPO3_DLOG) {
+								\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
+							}
+							//Get the language codes from lg_collate_locate
+							$values = $this->getLanguageCodesForCountry($countryCode);
+							foreach ($values as $value) {
+								//If one of the languages exist
+								if (array_key_exists($value, $availableLanguagesArr)) {
+									if (TYPO3_DLOG) {
+										\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
 									}
+									$preferredLanguageOrPageUid = $availableLanguagesArr[$value];
+									break;
 								}
 							}
 						}
