@@ -213,7 +213,7 @@ class LanguageDetection extends AbstractPlugin {
 						&& file_exists(PEAR_INSTALL_DIR . '/Net/GeoIP')
 						&& $this->conf['pathToDatabaseForGeoIPData']) {
 						require_once PEAR_INSTALL_DIR . '/Net/GeoIP.php';
-						$pathToDatabase = \TYPO3\CMS\Core\Utility\GeneralUtility::getFileAbsFileName(
+						$pathToDatabase = GeneralUtility::getFileAbsFileName(
 							$this->conf['pathToDatabaseForGeoIPData']
 						);
 						$geoIp = new Net_GeoIP($pathToDatabase);
@@ -232,11 +232,11 @@ class LanguageDetection extends AbstractPlugin {
 					if (!$countryCode && function_exists('geoip_country_code_by_name')) {
 						// Get country code from geoip
 						if (TYPO3_DLOG) {
-							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
+							GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
 						}
 						$countryCode = strtolower(geoip_country_code_by_name($this->getUserIP()));
 						if (TYPO3_DLOG) {
-							\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
+							GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
 						}
 					}
 
@@ -244,13 +244,13 @@ class LanguageDetection extends AbstractPlugin {
 						//Check for the country code in the configured list of country to languages
 						if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.']) && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)) {
 							if (TYPO3_DLOG) {
-								\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
+								GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
 							}
 							$preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
 							//Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
-						} elseif (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
+						} elseif (ExtensionManagementUtility::isLoaded('static_info_tables')) {
 							if (TYPO3_DLOG) {
-								\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
+								GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
 							}
 							//Get the language codes from lg_collate_locate
 							$values = $this->getLanguageCodesForCountry($countryCode);
@@ -258,7 +258,7 @@ class LanguageDetection extends AbstractPlugin {
 								//If one of the languages exist
 								if (array_key_exists($value, $availableLanguagesArr)) {
 									if (TYPO3_DLOG) {
-										\TYPO3\CMS\Core\Utility\GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
+										GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
 									}
 									$preferredLanguageOrPageUid = $availableLanguagesArr[$value];
 									break;
