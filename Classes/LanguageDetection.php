@@ -216,7 +216,7 @@ class LanguageDetection extends AbstractPlugin {
 						$pathToDatabase = GeneralUtility::getFileAbsFileName(
 							$this->conf['pathToDatabaseForGeoIPData']
 						);
-						$geoIp = new Net_GeoIP($pathToDatabase);
+						$geoIp = new \Net_GeoIP($pathToDatabase);
 						// Get country code from geoip
 						if (TYPO3_DLOG) {
 							GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
