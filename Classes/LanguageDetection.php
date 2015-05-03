@@ -308,13 +308,20 @@ class LanguageDetection extends AbstractPlugin {
 			$sys_page->init(0);
 			$page = $sys_page->getPage($preferredLanguageOrPageUid);
 		}
-		$linkData = $this->getTSFE()->tmpl->linkData($page, '', 0, '', array(), '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid . '&' . GeneralUtility::getIndpEnv('QUERY_STRING'));
+		$url = $this->cObj->typoLink_URL([
+			'parameter' => $page['uid'],
+			'addQueryString' => TRUE,
+			'addQueryString.' => [
+				'exclude' => 'id'
+			],
+			'additionalParams' => '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid
+		]);
 
-		//Prefer the base URL if available
+		// Prefer the base URL if available
 		if (strlen($this->getTSFE()->baseUrl) > 1) {
-			$locationURL = $this->getTSFE()->baseURLWrap($linkData['totalURL']);
+			$locationURL = $this->getTSFE()->baseURLWrap($url);
 		} else {
-			$locationURL = $this->conf['dontAddSchemeToURL'] ? $linkData['totalURL'] : GeneralUtility::locationHeaderUrl($linkData['totalURL']);
+			$locationURL = $this->conf['dontAddSchemeToURL'] ? $url : GeneralUtility::locationHeaderUrl($url);
 		}
 
 		//Set session info
@@ -414,9 +421,9 @@ class LanguageDetection extends AbstractPlugin {
 		if (!$this->conf['useOldOneTreeConcept'] && $res) {
 			// Table and field exist so create query for the new approach:
 			$res = $this->getDB()->exec_SELECTquery(
-				'sys_language.uid, static_languages.lg_iso_2 as isocode',
-				'sys_language LEFT JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
-				'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
+				'uid, language_isocode as isocode',
+				'sys_language',
+				'1=1' . $this->cObj->enableFields('sys_language')
 			);
 		} else {
 			$res = $this->getDB()->exec_SELECTquery(
@@ -434,16 +441,22 @@ class LanguageDetection extends AbstractPlugin {
 
 		// Get the isocodes associated with the available sys_language uids
 		if (is_array($availableLanguages)) {
-			$res = $this->getDB()->exec_SELECTquery(
-				'sys_language.uid, static_languages.lg_iso_2 as isocode, static_languages.lg_country_iso_2',
-				'sys_language LEFT JOIN static_languages ON sys_language.static_lang_isocode=static_languages.uid',
-				'sys_language.uid IN(' . implode(',', array_keys($availableLanguages)) . ')' .
-				$this->cObj->enableFields('sys_language') .
-				$this->cObj->enableFields('static_languages')
+			$iso2codes = array_values($availableLanguages);
+			$iso2codesQuoted = $this->getDB()->fullQuoteArray($iso2codes, 'static_languages');
+			$countryMapping = $this->getDB()->exec_SELECTgetRows(
+				'lg_iso_2 as isocode, lg_country_iso_2',
+				'static_languages',
+				'lg_iso_2 IN(' . implode(',', $iso2codesQuoted) . ')' . $this->cObj->enableFields('static_languages'),
+				'',
+				'',
+				'',
+				'isocode'
 			);
 			$tmpLanguages = array();
-			while ($row = $this->getDB()->sql_fetch_assoc($res)) {
-				$tmpLanguages[trim(strtolower($row['isocode'] . ($row['lg_country_iso_2'] ? '-' . $row['lg_country_iso_2'] : '')))] = $row['uid'];
+			foreach ($availableLanguages as $key => $value) {
+				$mapping = $countryMapping[strtoupper($value)];
+				$country = $mapping['lg_country_iso_2'] ? '-' . $mapping['lg_country_iso_2'] : '';
+				$tmpLanguages[trim(strtolower($value . $country))] = $key;
 			}
 			$availableLanguages = $tmpLanguages;
 		}
