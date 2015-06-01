@@ -34,6 +34,7 @@ Wikipedia offers a list of the ISO 639-1 codes. The actual codes used
 depends on the version of static\_info\_tables you have installed.
 Using the latest version is of course recommended.
 
+.. _`NetGeoIP`
 
 How can I use the PEAR package Net_GeoIP?
 """""""""""""""""""""""""""""""""""""""""

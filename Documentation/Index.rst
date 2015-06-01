@@ -24,6 +24,7 @@ Extension Key:  **rlmp\_language\_detection**
 * Copyright 2008-2009, Mathias Bolt Lesniak, LiliO Design, <mathias@lilio.com>
 * Copyright 2010, Joachim Mathes, punkt.de GmbH <t3extensions@punkt.de>
 * Copyright 2011-2012, Boris Gulay, <boris@boressoft.ru>
+* Copyright 2015, Thomas Löffler, Spooner Web, <loeffler@spooner-web.de>
 * Copyright 2015, Markus Klein, Reelworx GmbH, <klein.t3@reelworx.at>
 
 The extension icon is based on an icon by `Mark James <http://www.famfamfam.com/lab/icons/silk/>`_
