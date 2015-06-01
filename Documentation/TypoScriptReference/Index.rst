@@ -364,5 +364,24 @@ TypoScript Reference
          0
 
 
+.. container:: table-row
+
+   Property
+         pathToDatabaseForGeoIPData
+
+   Data type
+         string
+
+   Description
+         Path to the GeoIP database file, which must be stored locally. One free
+         GeoIP database file can be found on the `website of Maxmind`_. For more
+         details look to the :ref:`NetGeoIP`.
+
+   Default
+         (empty)
+
+
+.. _website of Maxmind: http://dev.maxmind.com/geoip/legacy/geolite/
+
 .. ###### END~OF~TABLE ######
 
