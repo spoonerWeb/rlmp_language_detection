@@ -208,11 +208,15 @@ class LanguageDetection extends AbstractPlugin {
 				case 'ip':
 					$countryCode = '';
 
-					// check for PEAR Package Net_GeoIP
-					if (defined('PEAR_INSTALL_DIR')
-						&& file_exists(PEAR_INSTALL_DIR . '/Net/GeoIP')
+					if ($this->conf['pearDirectory']) {
+						$pearDirectory = $this->conf['pearDirectory'];
+					} else {
+						$pearDirectory = PEAR_INSTALL_DIR;
+					}
+
+					if (file_exists($pearDirectory . '/Net/GeoIP.php')
 						&& $this->conf['pathToDatabaseForGeoIPData']) {
-						require_once PEAR_INSTALL_DIR . '/Net/GeoIP.php';
+						require_once $pearDirectory . '/Net/GeoIP.php';
 						$pathToDatabase = GeneralUtility::getFileAbsFileName(
 							$this->conf['pathToDatabaseForGeoIPData']
 						);
