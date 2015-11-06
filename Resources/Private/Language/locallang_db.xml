@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!DOCTYPE T3locallang>
+<T3locallang>
+	<meta type="array">
+		<type>database</type>
+		<description>Language labels for database tables/fields belonging to extension 'rlmp_language_detection'</description>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="sys_domain.disable_language_detection">Disable language detection</label>		
+		</languageKey>
+		<languageKey index="de" type="array">
+			<label index="sys_domain.disable_language_detection">Spracherkennung deaktivieren</label>
+		</languageKey>
+	</data>
+</T3locallang>
