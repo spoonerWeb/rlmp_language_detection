@@ -306,7 +306,7 @@ TypoScript Reference
 
    Description
          Use the old One-Tree concept where the name of the Website Language
-         records specifies the language code.
+         records specifies the language code. Also should be used for TYPO3 version below 7.
 
    Default
          0
