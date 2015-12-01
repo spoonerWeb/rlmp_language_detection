@@ -17,6 +17,7 @@ namespace Rlmp\RlmpLanguageDetection;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
 
@@ -423,12 +424,21 @@ class LanguageDetection extends AbstractPlugin {
 			'1=1'
 		);
 		if (!$this->conf['useOldOneTreeConcept'] && $res) {
-			// Table and field exist so create query for the new approach:
-			$res = $this->getDB()->exec_SELECTquery(
-				'uid, language_isocode as isocode',
-				'sys_language',
-				'1=1' . $this->cObj->enableFields('sys_language')
-			);
+			$currentVersion = VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version());
+			if ($currentVersion < 7000000) {
+				$res = $this->getDB()->exec_SELECTquery(
+						'sys_language.uid, static_languages.lg_iso_2 as isocode',
+						'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
+						'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
+				);
+			} else {
+				// Table and field exist so create query for the new approach:
+				$res = $this->getDB()->exec_SELECTquery(
+						'uid, language_isocode as isocode',
+						'sys_language',
+						'1=1' . $this->cObj->enableFields('sys_language')
+				);
+			}
 		} else {
 			$res = $this->getDB()->exec_SELECTquery(
 				'sys_language.uid, sys_language.title as isocode',
