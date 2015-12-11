@@ -177,6 +177,17 @@ class LanguageDetection extends AbstractPlugin {
 								GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (full check)', $this->extKey);
 							}
 							break;
+						} else {
+							// If the available language is greater (e.g. "fr-ca") as the accepted language ("fr")
+							foreach ($availableLanguagesArr as $short => $languageUid) {
+								if (strlen($short) > 2) {
+									$availableLanguageShort = substr($short, 0, 2);
+									if ($currentLanguage === $availableLanguageShort) {
+										$preferredLanguageOrPageUid = $languageUid;
+										break 2;
+									}
+								}
+							}
 						}
 						//Old-fashioned 2-char test ("en")
 						if (strlen($currentLanguage) > 2 && $preferredLanguageOrPageUid === FALSE) {
