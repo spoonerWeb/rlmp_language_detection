@@ -475,7 +475,7 @@ class LanguageDetection extends AbstractPlugin {
 			}
 		} else {
 			$res = $this->getDB()->exec_SELECTquery(
-				'sys_language.uid, sys_language.title as isocode',
+				'sys_language.uid, sys_language.language_isocode as isocode',
 				'sys_language',
 				'1=1' . $this->cObj->enableFields('sys_language')
 			);
