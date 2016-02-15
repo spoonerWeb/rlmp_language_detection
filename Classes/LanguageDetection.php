@@ -354,6 +354,11 @@ class LanguageDetection extends AbstractPlugin {
 		// Prefer the base URL if available
 		if (strlen($this->getTSFE()->baseUrl) > 1) {
 			$locationURL = $this->getTSFE()->baseURLWrap($url);
+			// there are cases where baseURLWrap($url) returns the pure link without the baseURL. Even when ->baseUrl is set. So we double check.
+			if(!strstr($locationURL, $this->getTSFE()->baseUrl)){ // check if the base url is found somewhere inside the string
+				// if its not found just concat
+				$locationURL = $this->getTSFE()->baseUrl . $url;
+			}
 		} else {
 			$locationURL = $this->conf['dontAddSchemeToURL'] ? $url : GeneralUtility::locationHeaderUrl($url);
 		}
