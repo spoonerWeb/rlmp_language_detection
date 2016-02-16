@@ -58,6 +58,11 @@ class LanguageDetection extends AbstractPlugin {
 	protected $cookieLifetime = 0;
 
 	/**
+	 * @var string
+	 */
+	protected $botPattern = '/bot|crawl|slurp|spider/i';
+
+	/**
 	 * The main function recognizes the browser's preferred languages and
 	 * reloads the page accordingly. Exits if successful.
 	 *
@@ -68,6 +73,11 @@ class LanguageDetection extends AbstractPlugin {
 	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = (int)$conf['cookieLifetime'];
+
+		// Break out if a spider/search engine bot is visiting the website
+		if ($this->isBot()) {
+			return $content;
+		}
 
 		// Break out if language already selected
 		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] && GeneralUtility::_GP($this->conf['languageGPVar']) !== NULL) {
@@ -574,6 +584,15 @@ class LanguageDetection extends AbstractPlugin {
 	 */
 	protected function getDB() {
 		return $GLOBALS['TYPO3_DB'];
+	}
+
+	/**
+	 * @return boolean
+	 */
+	protected function isBot() {
+		$userAgent = GeneralUtility::getIndpEnv('HTTP_USER_AGENT');
+
+		return isset($userAgent) && preg_match($this->botPattern, $userAgent);
 	}
 
 	/**
