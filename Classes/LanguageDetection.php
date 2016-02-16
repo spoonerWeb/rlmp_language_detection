@@ -102,6 +102,24 @@ class LanguageDetection extends AbstractPlugin {
 			return $content;
 		}
 
+		// Break out if we are on a non-redirect page:
+		// it's a blacklist e.g. for special pages where it might be unwanted behaviour
+		if($this->conf['noRedirectPidList']){
+			// explode pidList
+			$noRedirectPids = GeneralUtility::trimExplode(
+					',', // Delimiter string to explode with
+					$this->conf['noRedirectPidList'], // The string to explode
+					TRUE // If set, all empty values (='') will NOT be set in output
+				);
+			if(!empty($noRedirectPids)){
+				// check if the requested page id is in our list of non-redirect pids
+				if(in_array((string)$this->getTSFE()->id, $noRedirectPids)){
+					// if so just pass the requested content
+					return $content;
+				}
+			}
+		}
+
 		// Break out if the session tells us that the user has selected language
 		if (!$this->conf['dontBreakIfLanguageIsAlreadySelected']) {
 			if ($this->cookieLifetime) {
@@ -346,6 +364,11 @@ class LanguageDetection extends AbstractPlugin {
 		// Prefer the base URL if available
 		if (strlen($this->getTSFE()->baseUrl) > 1) {
 			$locationURL = $this->getTSFE()->baseURLWrap($url);
+			// there are cases where baseURLWrap($url) returns the pure link without the baseURL. Even when ->baseUrl is set. So we double check.
+			if(!strstr($locationURL, $this->getTSFE()->baseUrl)){ // check if the base url is found somewhere inside the string
+				// if its not found just concat
+				$locationURL = $this->getTSFE()->baseUrl . $url;
+			}
 		} else {
 			$locationURL = $this->conf['dontAddSchemeToURL'] ? $url : GeneralUtility::locationHeaderUrl($url);
 		}
@@ -462,7 +485,7 @@ class LanguageDetection extends AbstractPlugin {
 			}
 		} else {
 			$res = $this->getDB()->exec_SELECTquery(
-				'sys_language.uid, sys_language.title as isocode',
+				'sys_language.uid, sys_language.language_isocode as isocode',
 				'sys_language',
 				'1=1' . $this->cObj->enableFields('sys_language')
 			);

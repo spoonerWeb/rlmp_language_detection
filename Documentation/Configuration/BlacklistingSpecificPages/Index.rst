@@ -15,18 +15,14 @@
 .. role::   php(code)
 
 
-Configuration
--------------
+Blacklisting Pages
+^^^^^^^^^^^^^^^^^^
 
+You can set a list of pages where you want no redirects via TypoScript:
 
-.. toctree::
-   :maxdepth: 5
-   :titlesonly:
-   :glob:
+   .. code-block:: typoscript
 
-   Installation/Index
-   One-treeVsMultiple-treesConcept/Index
-   UsingTheMultiplePageTreesConcept/Index
-   DefiningTheDefaultLanguage/Index
-   DefiningALanguageParameterOtherThanL/Index
-   BlacklistingSpecificPages/Index
+	plugin.tx_rlmplanguagedetection_pi1 {
+		# no redirects on page id 10, 11 and 12
+		noRedirectPidList = 10,11,12
+	}
