@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2016-02-23T01:35:44Z" product-name="rlmp_language_detection">
+		<header/>
+		<body>
+			<trans-unit id="sys_domain.tx_rlmplanguagedetection_disabledetection" xml:space="preserve">
+				<source>Disable language detection</source>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

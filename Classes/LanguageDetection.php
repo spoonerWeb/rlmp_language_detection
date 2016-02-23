@@ -73,11 +73,9 @@ class LanguageDetection extends AbstractPlugin {
 	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = (int)$conf['cookieLifetime'];
-		$this->domainRecord = $this->getCurrentDomainRecord();
-		
 		
 		// Break out if domain record is disabled
-		if ($this->domainRecord["disable_language_detection"]) {
+		if ($this->isDisabledForDomain()) {
 		    return $content;
 		}
 
@@ -535,7 +533,8 @@ class LanguageDetection extends AbstractPlugin {
 			}
 		}
 		
-		if($this->conf['replaceDefaultLanguageUID'] != '' && $availableLanguages[strtolower($this->conf['replaceDeafaultLanguageUID'])]) {
+		//If our default language is not UID = 0 we can force rlmp to handle it as if it were
+		if($this->conf['replaceDefaultLanguageUID'] != '' && $availableLanguages[strtolower($this->conf['replaceDefaultLanguageUID'])]) {
 		    $availableLanguages[$this->conf['replaceDefaultLanguageUID']] = 0;
 		}
 
@@ -621,19 +620,24 @@ class LanguageDetection extends AbstractPlugin {
 		die();
 	}
 	
-	private function getCurrentDomainRecord () {
-	    $requestDomain = t3lib_div::getIndpEnv('HTTP_HOST');
-	    $ressource  = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-	            '*',                                // SELECT
-	            'sys_domain',                       // FROM
-	            "sys_domain.domainName = '".$requestDomain."' OR sys_domain.domainName = '".$requestDomain."/'",   // WHERE
-	            '',                                 // GROUP BY
-	            'sys_domain.pid, sys_domain.domainName',                                 // ORDER BY
-	            ''                                  // LIMIT
-	    );
-	    $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($ressource);
-	    return $row;
-	}
-	
-
+	/**
+     * Return whether or not language detection is disabled for the current domain
+     *
+     * @return boolean
+     */
+    protected function isDisabledForDomain()
+    {
+	    $ret = false;  // Don't disable if there are no entries in sys_domain
+        $domain = GeneralUtility::getIndpEnv('TYPO3_HOST_ONLY');
+        $res = $this->getDB()->exec_SELECTquery('tx_rlmplanguagedetection_disabledetection', 'sys_domain', 'domainName=\'' . $this->getDB()->fullQuoteStr($domain, 'sys_domain') . '\' AND hidden=0');
+        if($this->getDB()->sql_num_rows($res) == 1) {
+            if($row = $this->getDB()->sql_fetch_assoc($res)) {
+                if(isset($row['tx_rlmplanguagedetection_disabledetection'])) {
+                    $ret = (bool) $row['tx_rlmplanguagedetection_disabledetection'];
+                }
+            }
+        }
+        $this->getDB()->sql_free_result($res);
+		return $ret;
+    }
 }
