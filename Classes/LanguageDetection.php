@@ -73,6 +73,13 @@ class LanguageDetection extends AbstractPlugin {
 	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = (int)$conf['cookieLifetime'];
+		$this->domainRecord = $this->getCurrentDomainRecord();
+		
+		
+		// Break out if domain record is disabled
+		if ($this->domainRecord["disable_language_detection"]) {
+		    return $content;
+		}
 
 		// Break out if a spider/search engine bot is visiting the website
 		if ($this->isBot()) {
@@ -527,6 +534,10 @@ class LanguageDetection extends AbstractPlugin {
 				unset($availableLanguages[$excludeLanguage]);
 			}
 		}
+		
+		if($this->conf['replaceDefaultLanguageUID'] != '' && $availableLanguages[strtolower($this->conf['replaceDeafaultLanguageUID'])]) {
+		    $availableLanguages[$this->conf['replaceDefaultLanguageUID']] = 0;
+		}
 
 		return $availableLanguages;
 	}
@@ -609,5 +620,20 @@ class LanguageDetection extends AbstractPlugin {
 		debug($parentObject);
 		die();
 	}
+	
+	private function getCurrentDomainRecord () {
+	    $requestDomain = t3lib_div::getIndpEnv('HTTP_HOST');
+	    $ressource  = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
+	            '*',                                // SELECT
+	            'sys_domain',                       // FROM
+	            "sys_domain.domainName = '".$requestDomain."' OR sys_domain.domainName = '".$requestDomain."/'",   // WHERE
+	            '',                                 // GROUP BY
+	            'sys_domain.pid, sys_domain.domainName',                                 // ORDER BY
+	            ''                                  // LIMIT
+	    );
+	    $row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($ressource);
+	    return $row;
+	}
+	
 
 }
