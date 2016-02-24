@@ -35,16 +35,6 @@ class LanguageDetection extends AbstractPlugin {
 	/**
 	 * @var string
 	 */
-	public $prefixId = 'tx_rlmplanguagedetection_pi1';
-
-	/**
-	 * @var string
-	 */
-	public $scriptRelPath = 'pi1/class.tx_rlmplanguagedetection_pi1.php';
-
-	/**
-	 * @var string
-	 */
 	public $extKey = 'rlmp_language_detection';
 
 	/**
