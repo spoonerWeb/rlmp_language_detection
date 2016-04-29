@@ -1,0 +1,24 @@
+{
+  "name": "rlmp/rlmp_language_detection",
+  "type": "typo3-cms-extension",
+  "description": "This plugin detects the visitor's preferred language and sets the local configuration for TYPO3's language engine accordingly. Both, one-tree and multiple tree concepts, are supported. It can also select from a list of similar languages if the user's preferred language does not exist.",
+  "homepage": "http://typo3.org",
+  "license": [
+    "GPL-2.0+"
+  ],
+  "version": "7.0.5",
+  "require": {
+    "typo3/cms": "^7.6"
+  },
+  "extra": {
+    "typo3/cms": {
+      "cms-package-dir": "{$vendor-dir}/typo3/cms",
+      "web-dir": "htdocs"
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Rlmp\\RlmpLanguageDetection\\": "htdocs/typo3conf/ext/rlmp_language_detection/Classes/"
+    }
+  }
+}
