@@ -172,7 +172,6 @@ class LanguageDetection extends AbstractPlugin {
 						$preferredLanguageOrPageUid = 0;
 						break;
 					}
-
 					//Iterate through the user's accepted languages
 					for ($j = 0; $j < count($acceptedLanguagesArr); $j++) {
 						$currentLanguage = array_values($acceptedLanguagesArr);
@@ -432,68 +431,25 @@ class LanguageDetection extends AbstractPlugin {
 		$availableLanguages = array();
 
 		if (strlen($this->conf['defaultLang'])) {
-			$availableLanguages[0] = trim(strtolower($this->conf['defaultLang']));
+			$availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
 		}
-
-		// Two options: prior TYPO3 3.6.0 the title of the sys_language entry must be one of the two-letter iso codes in order
-		// to detect the language. But if the static_languages is installed and the sys_language record points to the correct
-		// language, we can use that information instead.
 
 		$res = $this->getDB()->exec_SELECTquery(
-			'lg_iso_2',
-			'static_languages',
-			'1=1'
+			'sys_language.uid, static_languages.lg_iso_2, static_languages.lg_country_iso_2',
+			'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
+			'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
 		);
-		if (!$this->conf['useOldOneTreeConcept'] && $res) {
-			$currentVersion = VersionNumberUtility::convertVersionNumberToInteger(VersionNumberUtility::getCurrentTypo3Version());
-			if ($currentVersion < 7000000) {
-				$res = $this->getDB()->exec_SELECTquery(
-						'sys_language.uid, static_languages.lg_iso_2 as isocode',
-						'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
-						'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
-				);
-			} else {
-				// Table and field exist so create query for the new approach:
-				$res = $this->getDB()->exec_SELECTquery(
-						'uid, language_isocode as isocode',
-						'sys_language',
-						'1=1' . $this->cObj->enableFields('sys_language')
-				);
-			}
-		} else {
-			$res = $this->getDB()->exec_SELECTquery(
-				'sys_language.uid, sys_language.title as isocode',
-				'sys_language',
-				'1=1' . $this->cObj->enableFields('sys_language')
-			);
-		}
+
 		while ($row = $this->getDB()->sql_fetch_assoc($res)) {
 			if (TYPO3_DLOG && !$row['isocode']) {
 				GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
 			}
-			$availableLanguages[$row['uid']] = trim(strtolower($row['isocode']));
-		}
-
-		// Get the isocodes associated with the available sys_language uids
-		if (is_array($availableLanguages)) {
-			$iso2codes = array_values($availableLanguages);
-			$iso2codesQuoted = $this->getDB()->fullQuoteArray($iso2codes, 'static_languages');
-			$countryMapping = $this->getDB()->exec_SELECTgetRows(
-				'lg_iso_2 as isocode, lg_country_iso_2',
-				'static_languages',
-				'lg_iso_2 IN(' . implode(',', $iso2codesQuoted) . ')' . $this->cObj->enableFields('static_languages'),
-				'',
-				'',
-				'',
-				'isocode'
-			);
-			$tmpLanguages = array();
-			foreach ($availableLanguages as $key => $value) {
-				$mapping = $countryMapping[strtoupper($value)];
-				$country = $mapping['lg_country_iso_2'] ? '-' . $mapping['lg_country_iso_2'] : '';
-				$tmpLanguages[trim(strtolower($value . $country))] = $key;
+			if(!empty($row['lg_country_iso_2'])) {
+				$availableLanguages[trim(strtolower($row['lg_iso_2'].'-'.$row['lg_country_iso_2']))] = (int)$row['uid'];
+			} else {
+				$availableLanguages[trim(strtolower($row['lg_iso_2']))] = (int)$row['uid'];
 			}
-			$availableLanguages = $tmpLanguages;
+
 		}
 
 		//Remove all languages except limitToLanguages
