@@ -297,7 +297,7 @@ class LanguageDetection extends AbstractPlugin {
 					//Hook for adding other language processing
 					if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks'])) {
 						foreach ($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['rlmp_language_detection']['preferredLanguageHooks'] as $key => $_funcRef) {
-							if ($key == $testOrder[$i]) {
+							if ($key === $testOrder[$i]) {
 								$preferredLanguageOrPageUid = GeneralUtility::callUserFunction($_funcRef, $availableLanguagesArr, $this);
 								if ($preferredLanguageOrPageUid) {
 									break;
@@ -453,7 +453,7 @@ class LanguageDetection extends AbstractPlugin {
 		}
 
 		//Remove all languages except limitToLanguages
-		if ($this->conf['limitToLanguages'] != '') {
+		if ($this->conf['limitToLanguages'] !== '') {
 			$limitToLanguages = GeneralUtility::trimExplode(
 				',', //Delimiter string to explode with
 				strtolower($this->conf['limitToLanguages']), //The string to explode
@@ -470,9 +470,9 @@ class LanguageDetection extends AbstractPlugin {
 		}
 
 		//Remove all languages in the exclude list
-		if ($this->conf['excludeLanguages'] != '') {
+		if ($this->conf['excludeLanguages'] !== '') {
 			$excludeLanguages = array();
-			if ($this->conf['excludeLanguages'] != '') {
+			if ($this->conf['excludeLanguages'] !== '') {
 				$excludeLanguages = GeneralUtility::trimExplode(
 					',', //Delimiter string to explode with
 					strtolower($this->conf['excludeLanguages']), //The string to explode
