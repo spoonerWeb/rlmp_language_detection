@@ -8,7 +8,8 @@
   ],
   "version": "7.0.5",
   "require": {
-    "typo3/cms": ">6.2"
+    "typo3/cms": ">6.2",
+    "typo3-ter/static-info-tables": ">6.3"
   },
   "extra": {
     "typo3/cms": {
