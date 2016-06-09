@@ -33,9 +33,7 @@
       "web-dir": "htdocs"
     }
   },
-  "autoload": {
-    "psr-4": {
-      "Rlmp\\RlmpLanguageDetection\\": "htdocs/typo3conf/ext/rlmp_language_detection/Classes/"
+      "Rlmp\\RlmpLanguageDetection\\": "Classes"
     }
   }
 }
