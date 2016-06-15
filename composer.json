@@ -33,6 +33,8 @@
       "web-dir": "htdocs"
     }
   },
+  "autoload": {
+    "psr-4": {
       "Rlmp\\RlmpLanguageDetection\\": "Classes"
     }
   }
