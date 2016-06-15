@@ -22,7 +22,7 @@
       "role": "Developer"
     }
   ],
-  "version": "7.0.6",
+  "version": "7.0.8",
   "require": {
     "typo3/cms": ">6.2",
     "typo3-ter/static-info-tables": ">6.3"
