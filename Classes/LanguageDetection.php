@@ -339,7 +339,7 @@ class LanguageDetection extends AbstractPlugin {
 			'addQueryString.' => array(
 				'exclude' => 'id'
 			),
-			'additionalParams' => '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid
+			'additionalParams' => $this->conf['useOneTreeMethod'] ? '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid : ''
 		));
 
 		// Prefer the base URL if available
