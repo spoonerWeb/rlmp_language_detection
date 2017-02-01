@@ -333,8 +333,9 @@ class LanguageDetection extends AbstractPlugin {
 			$sys_page->init(0);
 			$page = $sys_page->getPage($preferredLanguageOrPageUid);
 		}
+		$pageID = method_exists($this->getTSFE(),'getRequestedId') ? $this->getTSFE()->getRequestedId() : $page['uid'];
 		$url = $this->cObj->typoLink_URL(array(
-			'parameter' => $page['uid'],
+			'parameter' => $pageID,
 			'addQueryString' => TRUE,
 			'addQueryString.' => array(
 				'exclude' => 'id'
