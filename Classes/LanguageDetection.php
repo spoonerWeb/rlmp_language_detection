@@ -175,7 +175,7 @@ class LanguageDetection extends AbstractPlugin {
 					//Iterate through the user's accepted languages
 					for ($j = 0; $j < count($acceptedLanguagesArr); $j++) {
 						$currentLanguage = array_values($acceptedLanguagesArr);
-						$currentLanguage = $currentLanguage[$j];
+						$currentLanguage = strtolower($currentLanguage[$j]);
 						if (TYPO3_DLOG) {
 							GeneralUtility::devLog('Testing language: ' . $currentLanguage, $this->extKey);
 						}
