@@ -47,6 +47,8 @@ plugin.tx_rlmplanguagedetection_pi1 {
 	testOrder = browser,ip
 	dieAtEnd = 0
 	forceRedirect = 0
+	
+	replaceDefaultLanguageUID = 
 }
 
 # Disable USER_INT when GP:L exists, and the extension anyway isn't needed.

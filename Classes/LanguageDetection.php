@@ -35,16 +35,6 @@ class LanguageDetection extends AbstractPlugin {
 	/**
 	 * @var string
 	 */
-	public $prefixId = 'tx_rlmplanguagedetection_pi1';
-
-	/**
-	 * @var string
-	 */
-	public $scriptRelPath = 'pi1/class.tx_rlmplanguagedetection_pi1.php';
-
-	/**
-	 * @var string
-	 */
 	public $extKey = 'rlmp_language_detection';
 
 	/**
@@ -73,6 +63,11 @@ class LanguageDetection extends AbstractPlugin {
 	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = (int)$conf['cookieLifetime'];
+		
+		// Break out if domain record is disabled
+		if ($this->isDisabledForDomain()) {
+		    return $content;
+		}
 
 		// Break out if a spider/search engine bot is visiting the website
 		if ($this->isBot()) {
@@ -484,6 +479,11 @@ class LanguageDetection extends AbstractPlugin {
 				unset($availableLanguages[$excludeLanguage]);
 			}
 		}
+		
+		//If our default language is not UID = 0 we can force rlmp to handle it as if it were
+		if($this->conf['replaceDefaultLanguageUID'] != '' && $availableLanguages[strtolower($this->conf['replaceDefaultLanguageUID'])]) {
+		    $availableLanguages[$this->conf['replaceDefaultLanguageUID']] = 0;
+		}
 
 		return $availableLanguages;
 	}
@@ -566,5 +566,23 @@ class LanguageDetection extends AbstractPlugin {
 		debug($parentObject);
 		die();
 	}
-
+	
+	/**
+     * Return whether or not language detection is disabled for the current domain
+     *
+     * @return boolean
+     */
+    protected function isDisabledForDomain()
+    {
+	    $ret = false;  // Don't disable if there are no entries in sys_domain
+        $domain = GeneralUtility::getIndpEnv('TYPO3_HOST_ONLY');
+        $res = $this->getDB()->exec_SELECTquery('tx_rlmplanguagedetection_disabledetection', 'sys_domain', 'domainName=\'' . $this->getDB()->fullQuoteStr($domain, 'sys_domain') . '\' AND hidden=0');
+        if($this->getDB()->sql_num_rows($res) == 1) {
+            if($row = $this->getDB()->sql_fetch_assoc($res)) {
+                $ret = (bool) $row['tx_rlmplanguagedetection_disabledetection'];
+            }
+        }
+        $this->getDB()->sql_free_result($res);
+		return $ret;
+    }
 }
