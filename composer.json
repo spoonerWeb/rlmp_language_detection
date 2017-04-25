@@ -24,7 +24,7 @@
   ],
   "require": {
     "typo3/cms": ">6.2",
-    "typo3-ter/static-info-tables": ">6.3"
+    "sjbr/static-info-tables": ">6.3"
   },
   "autoload": {
     "psr-4": {
