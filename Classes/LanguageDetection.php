@@ -334,11 +334,25 @@ class LanguageDetection extends AbstractPlugin {
 			$page = $sys_page->getPage($preferredLanguageOrPageUid);
 		}
 		$pageId = method_exists($this->getTSFE(),'getRequestedId') ? $this->getTSFE()->getRequestedId() : $page['uid'];
+		// Add id to url parameters to remove
+		$removeParams = array('id');
+		// Check allowed url parameters if configured
+		if ($this->conf['allowedParams']) {
+			$getVariables = GeneralUtility::_GET();
+			if (isset($getVariables) && is_array($getVariables)) {
+				$allowedParams = GeneralUtility::trimExplode(',', $this->conf['allowedParams'], true);
+				$allowedParams = array_merge($allowedParams, array('type', 'MP'));
+				$allowedParams = array_merge($allowedParams, GeneralUtility::trimExplode(',', $this->getTSFE()->config['config']['linkVars'] ?: '', true));
+				$disallowedParams = array_diff(array_keys($getVariables), $allowedParams);
+				// Add disallowed parameters to parameters to remove
+				$removeParams = array_merge($removeParams, $disallowedParams);
+			}
+		}
 		$url = $this->cObj->typoLink_URL(array(
 			'parameter' => $pageId,
 			'addQueryString' => TRUE,
 			'addQueryString.' => array(
-				'exclude' => 'id'
+				'exclude' => implode(',', $removeParams)
 			),
 			'additionalParams' => $this->conf['useOneTreeMethod'] ? '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid : ''
 		));
