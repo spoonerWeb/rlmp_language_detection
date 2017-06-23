@@ -342,7 +342,9 @@ class LanguageDetection extends AbstractPlugin {
 			if (isset($getVariables) && is_array($getVariables)) {
 				$allowedParams = GeneralUtility::trimExplode(',', $this->conf['allowedParams'], true);
 				$allowedParams = array_merge($allowedParams, array('type', 'MP'));
-				$allowedParams = array_merge($allowedParams, GeneralUtility::trimExplode(',', $this->getTSFE()->config['config']['linkVars'] ?: '', true));
+				$this->getTSFE()->calculateLinkVars();
+				parse_str($this->getTSFE()->linkVars,$query);
+				$allowedParams = array_merge($allowedParams, array_keys($query));
 				$disallowedParams = array_diff(array_keys($getVariables), $allowedParams);
 				// Add disallowed parameters to parameters to remove
 				$removeParams = array_merge($removeParams, $disallowedParams);
