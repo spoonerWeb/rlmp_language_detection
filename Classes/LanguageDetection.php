@@ -20,6 +20,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
+use Doctrine\DBAL\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 
 /**
  * Plugin 'Language Detection' for the 'rlmp_language_detection' extension.
@@ -63,6 +65,11 @@ class LanguageDetection extends AbstractPlugin {
 	protected $botPattern = '/bot|crawl|slurp|spider/i';
 
 	/**
+	 * @var \Doctrine\DBAL\Query\QueryBuilder $queryBuilder
+	 */
+	protected $queryBuilder;
+
+	/**
 	 * The main function recognizes the browser's preferred languages and
 	 * reloads the page accordingly. Exits if successful.
 	 *
@@ -73,6 +80,7 @@ class LanguageDetection extends AbstractPlugin {
 	public function main($content, $conf) {
 		$this->conf = $conf;
 		$this->cookieLifetime = (int)$conf['cookieLifetime'];
+		$this->queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('sys_language');
 
 		// Break out if a spider/search engine bot is visiting the website
 		if ($this->isBot()) {
@@ -435,18 +443,29 @@ class LanguageDetection extends AbstractPlugin {
 			$availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
 		}
 
-		$res = $this->getDB()->exec_SELECTquery(
-			'sys_language.uid, static_languages.lg_iso_2, static_languages.lg_country_iso_2',
-			'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
-			'1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
-		);
+		$res = $this->queryBuilder
+			->select('sys_language.uid', 'static_languages.lg_iso_2', 'static_languages.lg_country_iso_2')
+			->from('sys_language')
+			->join(
+				'sys_language',
+				'static_languages',
+				'static_languages',
+				$this->queryBuilder
+					->expr()
+					->eq(
+						'sys_language.static_lang_isocode',
+						$this->queryBuilder->quoteIdentifier('static_languages.uid', \PDO::PARAM_INT)
+					)
+			)
+			->execute()
+			->fetchAll();
 
-		while ($row = $this->getDB()->sql_fetch_assoc($res)) {
+		foreach ( $res as $row ) {
 			if (TYPO3_DLOG && !$row['isocode']) {
 				GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
 			}
-			if(!empty($row['lg_country_iso_2'])) {
-				$availableLanguages[trim(strtolower($row['lg_iso_2'].'-'.$row['lg_country_iso_2']))] = (int)$row['uid'];
+			if (!empty($row['lg_country_iso_2'])) {
+				$availableLanguages[trim(strtolower($row['lg_iso_2'] . '-' . $row['lg_country_iso_2']))] = (int)$row['uid'];
 			} else {
 				$availableLanguages[trim(strtolower($row['lg_iso_2']))] = (int)$row['uid'];
 			}
