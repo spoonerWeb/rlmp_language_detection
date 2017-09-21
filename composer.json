@@ -1,5 +1,5 @@
 {
-  "name": "spooner-web/rlmp-language-detection",
+  "name": "rlmp/rlmp-language-detection",
   "type": "typo3-cms-extension",
   "description": "This plugin detects the visitor's preferred language and sets the local configuration for TYPO3's language engine accordingly. Both, one-tree and multiple tree concepts, are supported. It can also select from a list of similar languages if the user's preferred language does not exist.",
   "homepage": "https://typo3.org/extensions/repository/view/rlmp_language_detection",
