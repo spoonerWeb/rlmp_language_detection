@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 namespace Rlmp\RlmpLanguageDetection;
 
 /**
@@ -14,10 +14,12 @@ namespace Rlmp\RlmpLanguageDetection;
  * The TYPO3 project - inspiring people to share!
  */
 
+use SJBR\StaticInfoTables\PiBaseApi;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
+use TYPO3\CMS\Frontend\Page\PageRepository;
 use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
 
 /**
@@ -331,8 +333,8 @@ class LanguageDetection extends AbstractPlugin
         if ($this->conf['useOneTreeMethod']) {
             $page = $this->getTSFE()->page;
         } else {
-            /** @var \TYPO3\CMS\Frontend\Page\PageRepository $sys_page */
-            $sys_page = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
+            /** @var PageRepository $sys_page */
+            $sys_page = GeneralUtility::makeInstance(PageRepository::class);
             $sys_page->init(0);
             $page = $sys_page->getPage($preferredLanguageOrPageUid);
         }
@@ -512,8 +514,8 @@ class LanguageDetection extends AbstractPlugin
      */
     protected function getLanguageCodesForCountry(string $countryCode):array
     {
-        /** @var \SJBR\StaticInfoTables\PiBaseApi $staticInfoObj */
-        $staticInfoObj = GeneralUtility::makeInstance(\SJBR\StaticInfoTables\PiBaseApi::class);
+        /** @var PiBaseApi $staticInfoObj */
+        $staticInfoObj = GeneralUtility::makeInstance(PiBaseApi::class);
         if ($staticInfoObj->needsInit()) {
             $staticInfoObj->init();
         }
