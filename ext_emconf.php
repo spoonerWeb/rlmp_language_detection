@@ -10,29 +10,27 @@
  * writing. "version" and "dependencies" must not be touched!
  ***************************************************************/
 
-$EM_CONF[$_EXTKEY] = array(
-	'title' => 'Language Detection',
-	'description' => 'This plugin detects the visitor\'s preferred language and sets the local configuration for TYPO3\'s language engine accordingly. Both, one-tree and multiple tree concepts, are supported. It can also select from a list of similar languages if the user\'s preferred language does not exist.',
-	'category' => 'misc',
-	'shy' => 0,
-	'version' => '8.0.0-dev',
-	'state' => 'stable',
-	'uploadfolder' => 0,
-	'clearcacheonload' => 0,
-	'author' => 'Thomas Löffler',
-	'author_email' => 'thomas.loeffler@typo3.org',
-	'author_company' => '',
-	'CGLcompliance' => '',
-	'CGLcompliance_note' => '',
-	'constraints' => array(
-		'depends' => array(
-			'php' => '7.0.0',
-			'typo3' => '7.6.22-8.99.99',
-			'static_info_tables' => '6.4.0'
-		),
-		'conflicts' => array(
-		),
-		'suggests' => array(
-		),
-	),
-);
+$EM_CONF[$_EXTKEY] = [
+    'title' => 'Language Detection',
+    'description' => 'This plugin detects the visitor\'s preferred language and sets the local configuration for TYPO3\'s language engine accordingly. Both, one-tree and multiple tree concepts, are supported. It can also select from a list of similar languages if the user\'s preferred language does not exist.',
+    'category' => 'misc',
+    'shy' => 0,
+    'version' => '8.0.0-dev',
+    'state' => 'stable',
+    'uploadfolder' => 0,
+    'clearcacheonload' => 0,
+    'author' => 'Thomas Löffler',
+    'author_email' => 'thomas.loeffler@typo3.org',
+    'author_company' => '',
+    'CGLcompliance' => '',
+    'CGLcompliance_note' => '',
+    'constraints' => [
+        'depends' => [
+            'php' => '7.0.0',
+            'typo3' => '7.6.22-8.99.99',
+            'static_info_tables' => '6.4.0'
+        ],
+        'conflicts' => [],
+        'suggests' => [],
+    ],
+];
