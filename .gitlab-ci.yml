@@ -1,0 +1,45 @@
+cache:
+  key: "$CI_COMMIT_REF_NAME/$CI_JOB_STAGE"
+  paths:
+    - /cache/
+
+before_script:
+  - apk add git --update
+
+stages:
+  - mirror
+  - release
+
+mirror-to-github:
+  stage: mirror
+  image: indiehosters/git
+  only:
+    - master
+  script:
+    - git remote add github https://tomalo:$GITHUB_TOKEN@github.com/spoonerWeb/rlmp_language_detection.git
+    - git push github master
+    - git push github master --tags
+
+# TER Upload when tagging in master branch
+# The variables T3O_USERNAME and T3O_PASSWORD should be set in GitLab
+ter-upload:
+  image: webdevops/php
+  stage: release
+  only:
+    - tags
+  before_script:
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - export COMPOSER_CACHE_DIR=/cache/composer
+  script:
+    - composer require namelesscoder/typo3-repository-client
+    - export TYPO3_PATH_WEB="$PWD/.Build/Web"
+    - >
+      if [ -n "$CI_COMMIT_TAG" ] && [ -n "$T3O_USERNAME" ] && [ -n "$T3O_PASSWORD" ]; then
+        echo -e "Preparing upload of release ${CI_COMMIT_TAG} to TER\n"
+        # Cleanup before we upload
+        git reset --hard HEAD && git clean -fx
+        # Upload
+        TAG_MESSAGE=`git tag -n10 -l $CI_COMMIT_TAG | sed 's/^[0-9.]*[ ]*//g'`
+        echo "Uploading release ${CI_COMMIT_TAG} to TER"
+        .Build/bin/upload . "$T3O_USERNAME" "$T3O_PASSWORD" "$TAG_MESSAGE"
+      fi;
