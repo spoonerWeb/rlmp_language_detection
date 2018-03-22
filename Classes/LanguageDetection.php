@@ -336,16 +336,19 @@ class LanguageDetection extends AbstractPlugin
             $sys_page->init(0);
             $page = $sys_page->getPage($preferredLanguageOrPageUid);
         }
-        $url = $this->cObj->typoLink_URL(
-            [
-                'parameter' => $page['uid'],
-                'addQueryString' => true,
-                'addQueryString.' => [
-                    'exclude' => 'id'
-                ],
-                'additionalParams' => '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid
+        $urlParams = [
+            'parameter' => $page['uid'],
+            'addQueryString' => true,
+            'addQueryString.' => [
+                'exclude' => 'id'
             ]
-        );
+        ];
+
+        if ($this->conf['useOneTreeMethod']) {
+            $urlParams['additionalParams'] = '&' . $this->conf['languageGPVar'] . '=' . $preferredLanguageOrPageUid;
+        }
+
+        $url = $this->cObj->typoLink_URL($urlParams);
 
         // Prefer the base URL if available
         if (strlen($this->getTSFE()->baseUrl) > 1) {
