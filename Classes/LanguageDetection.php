@@ -338,11 +338,30 @@ class LanguageDetection extends AbstractPlugin
             $sys_page->init(0);
             $page = $sys_page->getPage($preferredLanguageOrPageUid);
         }
+        $pageId = method_exists($this->getTSFE(), 'getRequestedId') ? $this->getTSFE()->getRequestedId() : $page['uid'];
+        //Add id to url GET parameters to remove
+        $removeParams = array('id');
+        //Check allowed url GET parameters if configured
+        if ($this->conf['allowedParams']) {
+            $getVariables = GeneralUtility::_GET();
+            if (isset($getVariables) && is_array($getVariables)) {
+                $allowedParams = GeneralUtility::trimExplode(',', $this->conf['allowedParams'], true);
+                //"type" and "MP" GET parameters are allowed by default
+                $allowedParams = array_merge($allowedParams, array('type', 'MP'));
+                $this->getTSFE()->calculateLinkVars();
+                parse_str($this->getTSFE()->linkVars, $query);
+                $allowedParams = array_merge($allowedParams, array_keys($query));
+                $disallowedParams = array_diff(array_keys($getVariables), $allowedParams);
+                // Add disallowed parameters to parameters to remove
+                $removeParams = array_merge($removeParams, $disallowedParams);
+            }
+        }
+        
         $urlParams = [
-            'parameter' => $page['uid'],
+            'parameter' => $pageId,
             'addQueryString' => true,
             'addQueryString.' => [
-                'exclude' => 'id'
+                'exclude' => implode(',', $removeParams)
             ]
         ];
 
