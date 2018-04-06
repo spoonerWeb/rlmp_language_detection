@@ -16,6 +16,7 @@ mirror-to-github:
   only:
     - master
   script:
+    - git remote rm github
     - git remote add github https://spoonerWeb:$GITHUB_TOKEN@github.com/spoonerWeb/rlmp_language_detection.git
     - git push github master
     - git push github master --tags
