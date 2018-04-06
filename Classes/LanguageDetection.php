@@ -163,6 +163,10 @@ class LanguageDetection extends AbstractPlugin
                     //Get Accepted Languages from Browser
                     $acceptedLanguagesArr = $this->getAcceptedLanguages();
 
+                    if (empty($acceptedLanguagesArr)) {
+                        break;
+                    }
+
                     if (TYPO3_DLOG) {
                         GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
                     }
