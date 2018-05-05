@@ -23,8 +23,12 @@
     }
   ],
   "require": {
-    "typo3/cms": "^7.6 || ^8.7",
+    "typo3/cms-core": "^7.6 || ^8.7",
     "sjbr/static-info-tables": "^6.4"
+  },
+  "replace": {
+    "rlmp_lanugage_detection": "self.version",
+    "typo3-ter/rlmp-language-detection": "self.version"
   },
   "suggest": {
     "pear/net_geoip": "Determine physical location from IP address"
@@ -41,7 +45,8 @@
   "extra": {
     "typo3/cms": {
       "cms-package-dir": "{$vendor-dir}/typo3/cms",
-      "web-dir": ".Build/Web"
+      "web-dir": ".Build/Web",
+      "extension-key": "rlmp_language_detection"
     }
   }
 }
