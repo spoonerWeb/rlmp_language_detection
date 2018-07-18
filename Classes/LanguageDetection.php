@@ -368,7 +368,7 @@ class LanguageDetection extends AbstractPlugin
         if ($this->cookieLifetime) {
             setcookie(
                 $this->extKey . '_languageSelected',
-                $this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : true,
+                (string)($this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : true),
                 $this->cookieLifetime + time()
             );
         } else {
