@@ -7,20 +7,7 @@ before_script:
   - apk add git --update
 
 stages:
-  - mirror
   - release
-
-mirror-to-github:
-  stage: mirror
-  image: indiehosters/git
-  only:
-    - master
-  script:
-    - git remote rm github
-    - git remote add github https://spoonerWeb:$GITHUB_TOKEN@github.com/spoonerWeb/rlmp_language_detection.git
-    - git push github master
-    - git push github master --tags
-  allow_failure: true
 
 # TER Upload when tagging in master branch
 # The variables T3O_USERNAME and T3O_PASSWORD should be set in GitLab
