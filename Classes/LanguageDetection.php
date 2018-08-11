@@ -122,7 +122,7 @@ class LanguageDetection extends AbstractPlugin
             if (isset($languageSessionKey)) {
                 // Can redirect only in one tree method for now
                 if ($this->conf['useOneTreeMethod'] && is_numeric($languageSessionKey)) {
-                    $this->doRedirect($languageSessionKey, $referrer);
+                    $this->doRedirect((int)$languageSessionKey, $referrer);
 
                     return '';
                 }
@@ -321,7 +321,7 @@ class LanguageDetection extends AbstractPlugin
         }
 
         if ($preferredLanguageOrPageUid !== false) {
-            $this->doRedirect($preferredLanguageOrPageUid, $referrer);
+            $this->doRedirect((int)$preferredLanguageOrPageUid, $referrer);
         }
 
         return '';
