@@ -260,13 +260,15 @@ class LanguageDetection extends AbstractPlugin
                         if (TYPO3_DLOG) {
                             GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
                         }
-                        $countryCode = strtolower(geoip_country_code_by_name($this->getUserIP()));
+                        $countryCode = geoip_country_code_by_name($this->getUserIP());
                         if (TYPO3_DLOG) {
                             GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
                         }
                     }
 
                     if ($countryCode) {
+                        $countryCode = strtolower($countryCode);
+
                         //Check for the country code in the configured list of country to languages
                         if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.'])
                             && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)
