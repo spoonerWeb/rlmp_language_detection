@@ -83,7 +83,8 @@ class LanguageDetection extends AbstractPlugin
         }
 
         // Break out if language already selected
-        if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] && GeneralUtility::_GP($this->conf['languageGPVar']) !== null && GeneralUtility::_GP($this->conf['languageGPVar']) !== '') {
+        if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] 
+            && (GeneralUtility::_GP($this->conf['languageGPVar']) !== null || GeneralUtility::_GP($this->conf['languageGPVar']) !== '')) {
             if (TYPO3_DLOG) {
                 GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
             }
