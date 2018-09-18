@@ -242,7 +242,7 @@ class LanguageDetection extends AbstractPlugin
                         $pearDirectory = PEAR_INSTALL_DIR;
                     }
 
-                    if (file_exists($pearDirectory . '/Net/GeoIP.php') && $this->conf['pathToDatabaseForGeoIPData']) {
+                    if ($this->conf['pathToDatabaseForGeoIPData'] && file_exists($pearDirectory . '/Net/GeoIP.php') {
                         require_once $pearDirectory . '/Net/GeoIP.php';
                         $pathToDatabase = GeneralUtility::getFileAbsFileName($this->conf['pathToDatabaseForGeoIPData']);
                         $geoIp = new \Net_GeoIP($pathToDatabase);
