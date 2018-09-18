@@ -179,9 +179,7 @@ class LanguageDetection extends AbstractPlugin
                         break;
                     }
                     //Iterate through the user's accepted languages
-                    for ($j = 0; $j < count($acceptedLanguagesArr); $j++) {
-                        $currentLanguage = array_values($acceptedLanguagesArr);
-                        $currentLanguage = $currentLanguage[$j];
+                    foreach ($acceptedLanguagesArr as $currentLanguage) {
                         if (TYPO3_DLOG) {
                             GeneralUtility::devLog('Testing language: ' . $currentLanguage, $this->extKey);
                         }
@@ -192,20 +190,21 @@ class LanguageDetection extends AbstractPlugin
                                 GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (full check)', $this->extKey);
                             }
                             break;
-                        } else {
-                            // If the available language is greater (e.g. "fr-ca") as the accepted language ("fr")
-                            foreach ($availableLanguagesArr as $short => $languageUid) {
-                                if (strlen($short) > 2) {
-                                    $availableLanguageShort = substr($short, 0, 2);
-                                    if ($currentLanguage === $availableLanguageShort) {
-                                        $preferredLanguageOrPageUid = $languageUid;
-                                        break 2;
-                                    }
+                        }
+
+                        // If the available language is greater (e.g. "fr-ca") as the accepted language ("fr")
+                        foreach ($availableLanguagesArr as $short => $languageUid) {
+                            if (\strlen($short) > 2) {
+                                $availableLanguageShort = substr($short, 0, 2);
+                                if ($currentLanguage === $availableLanguageShort) {
+                                    $preferredLanguageOrPageUid = $languageUid;
+                                    break 2;
                                 }
                             }
                         }
+
                         //Old-fashioned 2-char test ("en")
-                        if (strlen($currentLanguage) > 2 && $preferredLanguageOrPageUid === false) {
+                        if ($preferredLanguageOrPageUid === false && \strlen($currentLanguage) > 2) {
                             $currentLanguageShort = substr($currentLanguage, 0, 2);
                             if (isset($availableLanguagesArr[$currentLanguageShort])) {
                                 $preferredLanguageOrPageUid = $availableLanguagesArr[$currentLanguageShort];
@@ -216,8 +215,7 @@ class LanguageDetection extends AbstractPlugin
                             }
                         }
                         //If the user's language is in language aliases
-                        if ($this->conf['useLanguageAliases'] && array_key_exists($currentLanguage,
-                                $languageAliases) && $preferredLanguageOrPageUid === false) {
+                        if ($this->conf['useLanguageAliases'] && array_key_exists($currentLanguage, $languageAliases) && $preferredLanguageOrPageUid === false) {
                             $values = $languageAliases[$currentLanguage];
                             //Iterate through aliases and choose the first possible
                             foreach ($values as $value) {
@@ -234,8 +232,6 @@ class LanguageDetection extends AbstractPlugin
                     break;
                 //GeoIP
                 case 'ip':
-                    $countryCode = '';
-
                     if ($this->conf['pearDirectory']) {
                         $pearDirectory = $this->conf['pearDirectory'];
                     } else {
@@ -443,7 +439,7 @@ class LanguageDetection extends AbstractPlugin
     {
         $availableLanguages = [];
 
-        if (strlen($this->conf['defaultLang'])) {
+        if (\strlen($this->conf['defaultLang'])) {
             $availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
         }
 
@@ -483,14 +479,11 @@ class LanguageDetection extends AbstractPlugin
 
         //Remove all languages in the exclude list
         if ($this->conf['excludeLanguages'] !== '') {
-            $excludeLanguages = [];
-            if ($this->conf['excludeLanguages'] !== '') {
-                $excludeLanguages = GeneralUtility::trimExplode(
-                    ',',
-                    strtolower($this->conf['excludeLanguages']),
-                    true
-                );
-            }
+            $excludeLanguages = GeneralUtility::trimExplode(
+                ',',
+                strtolower($this->conf['excludeLanguages']),
+                true
+            );
             foreach ($excludeLanguages as $excludeLanguage) {
                 unset($availableLanguages[$excludeLanguage]);
             }
@@ -509,7 +502,7 @@ class LanguageDetection extends AbstractPlugin
     {
         $availableLanguages = [];
         foreach ($this->conf['multipleTreesRootPages.'] as $isoCode => $uid) {
-            $availableLanguages[trim(strtolower($isoCode))] = (int)$uid;
+            $availableLanguages[strtolower(trim($isoCode))] = (int)$uid;
         }
 
         return $availableLanguages;
