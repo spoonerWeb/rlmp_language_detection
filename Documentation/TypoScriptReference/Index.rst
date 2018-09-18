@@ -272,6 +272,21 @@ TypoScript Reference
 .. container:: table-row
 
    Property
+         allowedParams
+
+   Data type
+         string
+
+   Description
+         Comma separated list of allowed params to pass to the redirect.
+         The parameters "id", "MP", and "type" are passed anyway.
+
+   Default
+         (empty)
+
+.. container:: table-row
+
+   Property
          countryCodeToLanguageCode
 
    Data type
