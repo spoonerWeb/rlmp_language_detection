@@ -555,15 +555,7 @@ class LanguageDetection extends AbstractPlugin
      */
     protected function getUserIP():string
     {
-        if ($ip = GeneralUtility::getIndpEnv('HTTP_CLIENT_IP')) {
-            return $ip;
-        }
-
-        if ($ip = GeneralUtility::getIndpEnv('HTTP_X_FORWARDED_FOR')) {
-            return $ip;
-        }
-
-        return GeneralUtility::getIndpEnv('REMOTE_ADDR');
+        return GeneralUtility::getIndpEnv('HTTP_CLIENT_IP') || GeneralUtility::getIndpEnv('HTTP_X_FORWARDED_FOR') || GeneralUtility::getIndpEnv('REMOTE_ADDR');
     }
 
     /**
