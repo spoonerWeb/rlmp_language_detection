@@ -83,7 +83,7 @@ class LanguageDetection extends AbstractPlugin
         }
 
         // Break out if language already selected
-        if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] 
+        if (!$this->conf['dontBreakIfLanguageIsAlreadySelected']
             && (GeneralUtility::_GP($this->conf['languageGPVar']) !== null || GeneralUtility::_GP($this->conf['languageGPVar']) !== '')) {
             if (TYPO3_DLOG) {
                 GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
@@ -239,7 +239,7 @@ class LanguageDetection extends AbstractPlugin
                         $pearDirectory = PEAR_INSTALL_DIR;
                     }
 
-                    if ($this->conf['pathToDatabaseForGeoIPData'] && file_exists($pearDirectory . '/Net/GeoIP.php') {
+                    if ($this->conf['pathToDatabaseForGeoIPData'] && file_exists($pearDirectory . '/Net/GeoIP.php')) {
                         require_once $pearDirectory . '/Net/GeoIP.php';
                         $pathToDatabase = GeneralUtility::getFileAbsFileName($this->conf['pathToDatabaseForGeoIPData']);
                         $geoIp = new \Net_GeoIP($pathToDatabase);
@@ -359,7 +359,7 @@ class LanguageDetection extends AbstractPlugin
                 $removeParams = array_merge($removeParams, $disallowedParams);
             }
         }
-        
+
         $urlParams = [
             'parameter' => $pageId,
             'addQueryString' => true,
@@ -555,7 +555,7 @@ class LanguageDetection extends AbstractPlugin
      */
     protected function getUserIP():string
     {
-        return GeneralUtility::getIndpEnv('HTTP_CLIENT_IP') || GeneralUtility::getIndpEnv('HTTP_X_FORWARDED_FOR') || GeneralUtility::getIndpEnv('REMOTE_ADDR');
+        return GeneralUtility::getIndpEnv('HTTP_CLIENT_IP') ?? GeneralUtility::getIndpEnv('HTTP_X_FORWARDED_FOR') ?? GeneralUtility::getIndpEnv('REMOTE_ADDR');
     }
 
     /**
