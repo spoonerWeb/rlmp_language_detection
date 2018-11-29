@@ -85,7 +85,8 @@ class LanguageDetection extends AbstractPlugin
         // Break out if language already selected
         // lukianM: Here needs to be a && instead of || in the second condition as you want neither of those both.
         if (!$this->conf['dontBreakIfLanguageIsAlreadySelected'] 
-            && (GeneralUtility::_GP($this->conf['languageGPVar']) !== null && GeneralUtility::_GP($this->conf['languageGPVar']) !== '')) {
+            && GeneralUtility::_GP($this->conf['languageGPVar']) !== null 
+            && GeneralUtility::_GP($this->conf['languageGPVar']) !== '') {
             if (TYPO3_DLOG) {
                 GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
             }
