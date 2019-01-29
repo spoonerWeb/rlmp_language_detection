@@ -446,7 +446,7 @@ class LanguageDetection extends AbstractPlugin
             $languageCodesArr = array_keys($acceptedLanguagesArr);
             if (is_array($languageCodesArr)) {
                 foreach ($languageCodesArr as $languageCode) {
-                    $languagesArr[$languageCode] = $languageCode;
+                    $languagesArr[strtolower($languageCode)] = strtolower($languageCode);
                 }
             }
         }
