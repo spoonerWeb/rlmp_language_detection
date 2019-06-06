@@ -15,7 +15,7 @@ namespace Rlmp\RlmpLanguageDetection;
  */
 
 use SJBR\StaticInfoTables\PiBaseApi;
-use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
@@ -72,7 +72,7 @@ class LanguageDetection extends AbstractPlugin
      * @param array $conf The mandatory configuration array
      * @return string
      */
-    public function main(string $content, array $conf):string
+    public function main(string $content, array $conf): string
     {
         $this->conf = $conf;
         $this->cookieLifetime = (int)$conf['cookieLifetime'];
@@ -81,13 +81,12 @@ class LanguageDetection extends AbstractPlugin
         if ($this->isBot()) {
             return $content;
         }
-
-        // Break out if language already selected
+        // Break out if language already selected, other than default
+        $currentLanguage = parent::getCurrentSiteLanguage();
         if (!$this->conf['dontBreakIfLanguageIsAlreadySelected']
-            && GeneralUtility::_GP($this->conf['languageGPVar']) !== null
-            && GeneralUtility::_GP($this->conf['languageGPVar']) !== ''
+            && $currentLanguage->getLanguageId() !== 0
         ) {
-            if (TYPO3_DLOG) {
+            if ($GLOBALS['TYPO3_DLOG']) {
                 GeneralUtility::devLog('Break out since language is already selected', $this->extKey);
             }
 
@@ -96,7 +95,7 @@ class LanguageDetection extends AbstractPlugin
 
         // Break out if the last page visited was also on our site:
         $referrer = (string)GeneralUtility::getIndpEnv('HTTP_REFERER');
-        if (TYPO3_DLOG) {
+        if ($GLOBALS['TYPO3_DLOG']) {
             GeneralUtility::devLog('Referrer: ' . $referrer, $this->extKey);
         }
         if (!$this->conf['dontBreakIfLastPageWasOnSite']
@@ -136,7 +135,7 @@ class LanguageDetection extends AbstractPlugin
 
         //Get available languages
         $availableLanguagesArr = $this->conf['useOneTreeMethod'] ? $this->getSysLanguages() : $this->getMultipleTreeLanguages();
-        if (TYPO3_DLOG) {
+        if ($GLOBALS['TYPO3_DLOG']) {
             GeneralUtility::devLog('Detecting available languages in installation', $this->extKey, 0, $availableLanguagesArr);
         }
 
@@ -170,7 +169,7 @@ class LanguageDetection extends AbstractPlugin
                         break;
                     }
 
-                    if (TYPO3_DLOG) {
+                    if ($GLOBALS['TYPO3_DLOG']) {
                         GeneralUtility::devLog('Detecting user browser languages', $this->extKey, 0, $acceptedLanguagesArr);
                     }
 
@@ -183,13 +182,13 @@ class LanguageDetection extends AbstractPlugin
                     }
                     //Iterate through the user's accepted languages
                     foreach ($acceptedLanguagesArr as $currentLanguage) {
-                        if (TYPO3_DLOG) {
+                        if ($GLOBALS['TYPO3_DLOG']) {
                             GeneralUtility::devLog('Testing language: ' . $currentLanguage, $this->extKey);
                         }
                         //If the current language is available (full "US_en" type check)
                         if (isset($availableLanguagesArr[$currentLanguage])) {
                             $preferredLanguageOrPageUid = $availableLanguagesArr[$currentLanguage];
-                            if (TYPO3_DLOG) {
+                            if ($GLOBALS['TYPO3_DLOG']) {
                                 GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (full check)', $this->extKey);
                             }
                             break;
@@ -211,7 +210,7 @@ class LanguageDetection extends AbstractPlugin
                             $currentLanguageShort = substr($currentLanguage, 0, 2);
                             if (isset($availableLanguagesArr[$currentLanguageShort])) {
                                 $preferredLanguageOrPageUid = $availableLanguagesArr[$currentLanguageShort];
-                                if (TYPO3_DLOG) {
+                                if ($GLOBALS['TYPO3_DLOG']) {
                                     GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (normal check)', $this->extKey);
                                 }
                                 break;
@@ -224,7 +223,7 @@ class LanguageDetection extends AbstractPlugin
                             foreach ($values as $value) {
                                 if (isset($availableLanguagesArr[$value])) {
                                     $preferredLanguageOrPageUid = $availableLanguagesArr[$value];
-                                    if (TYPO3_DLOG) {
+                                    if ($GLOBALS['TYPO3_DLOG']) {
                                         GeneralUtility::devLog('Found: ' . $preferredLanguageOrPageUid . ' (alias check)', $this->extKey);
                                     }
                                     break 2;
@@ -246,11 +245,11 @@ class LanguageDetection extends AbstractPlugin
                         $pathToDatabase = GeneralUtility::getFileAbsFileName($this->conf['pathToDatabaseForGeoIPData']);
                         $geoIp = new \Net_GeoIP($pathToDatabase);
                         // Get country code from geoip
-                        if (TYPO3_DLOG) {
+                        if ($GLOBALS['TYPO3_DLOG']) {
                             GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
                         }
                         $countryCode = strtolower($geoIp->lookupCountryCode($this->getUserIP()));
-                        if (TYPO3_DLOG) {
+                        if ($GLOBALS['TYPO3_DLOG']) {
                             GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
                         }
                         unset($geoIp);
@@ -259,11 +258,11 @@ class LanguageDetection extends AbstractPlugin
                     // PHP module geoip
                     if (!$countryCode && function_exists('geoip_country_code_by_name')) {
                         // Get country code from geoip
-                        if (TYPO3_DLOG) {
+                        if ($GLOBALS['TYPO3_DLOG']) {
                             GeneralUtility::devLog('IP: ' . $this->getUserIP(), $this->extKey);
                         }
                         $countryCode = geoip_country_code_by_name($this->getUserIP());
-                        if (TYPO3_DLOG) {
+                        if ($GLOBALS['TYPO3_DLOG']) {
                             GeneralUtility::devLog('GeoIP Country Code: ' . $countryCode, $this->extKey);
                         }
                     }
@@ -275,13 +274,13 @@ class LanguageDetection extends AbstractPlugin
                         if (array_key_exists($countryCode, $this->conf['countryCodeToLanguageCode.'])
                             && array_key_exists($this->conf['countryCodeToLanguageCode.'][$countryCode], $availableLanguagesArr)
                         ) {
-                            if (TYPO3_DLOG) {
+                            if ($GLOBALS['TYPO3_DLOG']) {
                                 GeneralUtility::devLog('Available language found in configured: ' . $countryCode, $this->extKey);
                             }
                             $preferredLanguageOrPageUid = $availableLanguagesArr[$this->conf['countryCodeToLanguageCode.'][$countryCode]];
                             //Use the static_info_tables lg_collate_locale to attempt to find a country to language relation.
                         } elseif (ExtensionManagementUtility::isLoaded('static_info_tables')) {
-                            if (TYPO3_DLOG) {
+                            if ($GLOBALS['TYPO3_DLOG']) {
                                 GeneralUtility::devLog('Checking in static_info_tables.', $this->extKey);
                             }
                             //Get the language codes from lg_collate_locate
@@ -289,7 +288,7 @@ class LanguageDetection extends AbstractPlugin
                             foreach ($values as $value) {
                                 //If one of the languages exist
                                 if (array_key_exists($value, $availableLanguagesArr)) {
-                                    if (TYPO3_DLOG) {
+                                    if ($GLOBALS['TYPO3_DLOG']) {
                                         GeneralUtility::devLog('Found in static_info_tables: ' . $value, $this->extKey);
                                     }
                                     $preferredLanguageOrPageUid = $availableLanguagesArr[$value];
@@ -317,7 +316,7 @@ class LanguageDetection extends AbstractPlugin
             }
         }
 
-        if (TYPO3_DLOG) {
+        if ($GLOBALS['TYPO3_DLOG']) {
             GeneralUtility::devLog('END result: Preferred=' . $preferredLanguageOrPageUid, $this->extKey);
         }
 
@@ -333,7 +332,7 @@ class LanguageDetection extends AbstractPlugin
      * @param string $referrer
      * @return void
      */
-    protected function doRedirect(int $preferredLanguageOrPageUid, string $referrer)
+    protected function doRedirect(int $preferredLanguageOrPageUid, string $referrer): void
     {
         if ($this->conf['useOneTreeMethod']) {
             $page = $this->getTSFE()->page;
@@ -397,14 +396,14 @@ class LanguageDetection extends AbstractPlugin
                 $this->extKey . '_languageSelected',
                 $this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : true
             );
-            $this->getTSFE()->storeSessionData();
+            $this->getTSFE()->fe_user->storeSessionData();
         }
 
-        if (TYPO3_DLOG) {
+        if ($GLOBALS['TYPO3_DLOG']) {
             GeneralUtility::devLog('Location to redirect to: ' . $locationURL, $this->extKey);
         }
         if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid || $this->conf['forceRedirect'])) {
-            if (TYPO3_DLOG) {
+            if ($GLOBALS['TYPO3_DLOG']) {
                 GeneralUtility::devLog('Perform redirect', $this->extKey);
             }
             header('Location: ' . $locationURL);
@@ -430,7 +429,7 @@ class LanguageDetection extends AbstractPlugin
      *
      * @return array An array containing the accepted languages; key and value = iso code, sorted by quality
      */
-    protected function getAcceptedLanguages():array
+    protected function getAcceptedLanguages(): array
     {
         $languagesArr = [];
         $rawAcceptedLanguagesArr = GeneralUtility::trimExplode(',', GeneralUtility::getIndpEnv('HTTP_ACCEPT_LANGUAGE'), true);
@@ -459,7 +458,7 @@ class LanguageDetection extends AbstractPlugin
      *
      * @return array sys_language records: ISO code => uid of sys_language record
      */
-    protected function getSysLanguages():array
+    protected function getSysLanguages(): array
     {
         $availableLanguages = [];
 
@@ -467,20 +466,27 @@ class LanguageDetection extends AbstractPlugin
             $availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
         }
 
-        $res = $this->getDB()->exec_SELECTquery(
-            'sys_language.uid, static_languages.lg_iso_2, static_languages.lg_country_iso_2',
-            'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
-            '1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
-        );
+        $queryBuilder = $this->getConnectionPool()->getQueryBuilderForTable('sys_language');
+        $languages = $queryBuilder
+            ->select('sys_language.uid', 'static.lg_iso_2', 'static.lg_country_iso_2')
+            ->from('sys_language')
+            ->join(
+                'sys_language',
+                'static_languages',
+                'static',
+                $queryBuilder->expr()->eq('sys_language.static_lang_isocode', 'static.uid')
+            )
+            ->execute()
+            ->fetchAll();
 
-        while ($row = $this->getDB()->sql_fetch_assoc($res)) {
-            if (TYPO3_DLOG && !$row['isocode']) {
-                GeneralUtility::devLog('No ISO-code given for language with UID ' . $row['uid'], $this->extKey);
+        foreach ($languages as $language) {
+            if ($GLOBALS['TYPO3_DLOG'] && !$language['language_isocode']) {
+                GeneralUtility::devLog('No ISO-code given for language with UID ' . $language['uid'], $this->extKey);
             }
-            if (!empty($row['lg_country_iso_2'])) {
-                $availableLanguages[trim(strtolower($row['lg_iso_2'] . '-' . $row['lg_country_iso_2']))] = (int)$row['uid'];
+            if (!empty($language['lg_country_iso_2'])) {
+                $availableLanguages[trim(strtolower($language['lg_iso_2'] . '-' . $language['lg_country_iso_2']))] = (int)$language['uid'];
             } else {
-                $availableLanguages[trim(strtolower($row['lg_iso_2']))] = (int)$row['uid'];
+                $availableLanguages[trim(strtolower($language['lg_iso_2']))] = (int)$language['uid'];
             }
         }
 
@@ -536,7 +542,7 @@ class LanguageDetection extends AbstractPlugin
      * @param string $countryCode
      * @return array
      */
-    protected function getLanguageCodesForCountry(string $countryCode):array
+    protected function getLanguageCodesForCountry(string $countryCode): array
     {
         /** @var PiBaseApi $staticInfoObj */
         $staticInfoObj = GeneralUtility::makeInstance(PiBaseApi::class);
@@ -544,7 +550,7 @@ class LanguageDetection extends AbstractPlugin
             $staticInfoObj->init();
         }
         $languages = $staticInfoObj->initLanguages(
-            ' lg_collate_locale LIKE \'%_' . $this->getDB()->quoteStr(strtoupper($countryCode), 'static_languages') . '\' '
+            ' lg_collate_locale LIKE \'%_' . $this->getConnectionPool()->quoteStr(strtoupper($countryCode), 'static_languages') . '\' '
         );
 
         return array_map('strtolower', array_keys($languages));
@@ -555,7 +561,7 @@ class LanguageDetection extends AbstractPlugin
      *
      * @return string IP address
      */
-    protected function getUserIP():string
+    protected function getUserIP(): string
     {
         return GeneralUtility::getIndpEnv('HTTP_CLIENT_IP') ?? GeneralUtility::getIndpEnv('HTTP_X_FORWARDED_FOR') ?? GeneralUtility::getIndpEnv('REMOTE_ADDR');
     }
@@ -563,23 +569,23 @@ class LanguageDetection extends AbstractPlugin
     /**
      * @return TypoScriptFrontendController
      */
-    protected function getTSFE():TypoScriptFrontendController
+    protected function getTSFE(): TypoScriptFrontendController
     {
         return $GLOBALS['TSFE'];
     }
 
     /**
-     * @return DatabaseConnection
+     * @return ConnectionPool
      */
-    protected function getDB():DatabaseConnection
+    protected function getConnectionPool(): ConnectionPool
     {
-        return $GLOBALS['TYPO3_DB'];
+        return GeneralUtility::makeInstance(ConnectionPool::class);
     }
 
     /**
      * @return bool
      */
-    protected function isBot():bool
+    protected function isBot(): bool
     {
         $userAgent = GeneralUtility::getIndpEnv('HTTP_USER_AGENT');
 
