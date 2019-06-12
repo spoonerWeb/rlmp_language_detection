@@ -22,7 +22,7 @@
   ],
   "require": {
     "typo3/cms-core": "^9.5",
-    "sjbr/static-info-tables": "^6.4"
+    "sjbr/static-info-tables": "*"
   },
   "replace": {
     "rlmp_lanugage_detection": "self.version",
