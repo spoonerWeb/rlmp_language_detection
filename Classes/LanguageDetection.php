@@ -16,7 +16,6 @@ namespace Rlmp\RlmpLanguageDetection;
  * The TYPO3 project - inspiring people to share!
  */
 
-use Cobweb\ExternalImport\Domain\Model\Data;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use SJBR\StaticInfoTables\PiBaseApi;
@@ -30,7 +29,6 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
-use TYPO3\CMS\Typo3DbLegacy\Database\DatabaseConnection;
 
 /**
  * Plugin 'Language Detection' for the 'rlmp_language_detection' extension.
@@ -357,7 +355,7 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
         } else {
             /** @var PageRepository $sys_page */
             $sys_page = GeneralUtility::makeInstance(PageRepository::class);
-            $sys_page->init(0);
+            $sys_page->__call('init', [0]);
             $page = $sys_page->getPage($preferredLanguageOrPageUid);
         }
         $pageId = method_exists($this->getTSFE(), 'getRequestedId') ? $this->getTSFE()->getRequestedId() : $page['uid'];
@@ -414,7 +412,7 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
                 $this->extKey . '_languageSelected',
                 $this->conf['useOneTreeMethod'] ? $preferredLanguageOrPageUid : true
             );
-            $this->getTSFE()->storeSessionData();
+            $this->getTSFE()->fe_user->storeSessionData();
         }
 
         $this->customLogger->info($this->extKey . ' Location to redirect to: ' . $locationURL);
