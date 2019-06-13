@@ -1,6 +1,17 @@
 rlmp_language_detection
 =======================
 
+Changes for version 9.0.0
+-------------------------
+
+TYPO3 CMS 9 compatibility
+
+**ATTENTION:** The plugin is not automatically registered to your PAGE object anymore, do that manually where needed.
+See manual!
+
+* Fixed DB calls
+* Fixed system internals calls
+
 Changes for version 7.0.0
 -------------------------
 
