@@ -22,7 +22,8 @@
   ],
   "require": {
     "typo3/cms-core": "^9.5",
-    "sjbr/static-info-tables": "*"
+    "sjbr/static-info-tables": "*",
+    "ext-mysqli": "*"
   },
   "replace": {
     "rlmp_lanugage_detection": "self.version",

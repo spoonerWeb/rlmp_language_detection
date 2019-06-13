@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+declare(strict_types=1);
+
 namespace Rlmp\RlmpLanguageDetection;
 
 /**
@@ -14,9 +16,12 @@ namespace Rlmp\RlmpLanguageDetection;
  * The TYPO3 project - inspiring people to share!
  */
 
+use Cobweb\ExternalImport\Domain\Model\Data;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use SJBR\StaticInfoTables\PiBaseApi;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Log\Logger;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
@@ -25,6 +30,7 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 use TYPO3\CMS\Frontend\Page\PageRepository;
 use TYPO3\CMS\Frontend\Plugin\AbstractPlugin;
+use TYPO3\CMS\Typo3DbLegacy\Database\DatabaseConnection;
 
 /**
  * Plugin 'Language Detection' for the 'rlmp_language_detection' extension.
@@ -474,13 +480,13 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
             $availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
         }
 
-        $res = $this->getDB()->exec_SELECTquery(
-            'sys_language.uid, static_languages.lg_iso_2, static_languages.lg_country_iso_2',
-            'sys_language JOIN static_languages ON sys_language.static_lang_isocode = static_languages.uid',
-            '1=1' . $this->cObj->enableFields('sys_language') . $this->cObj->enableFields('static_languages')
-        );
+        $res = $this->getQueryBuilder()
+            ->select('sys.uid', 'static.lg_iso_2', 'static.lg_country_iso_2')
+            ->from('sys_language', 'sys')
+            ->join('sys', 'static_languages', 'static', 'sys.static_lang_isocode = static.uid')
+            ->execute();
 
-        while ($row = $this->getDB()->sql_fetch_assoc($res)) {
+        while ($row = \mysqli_fetch_assoc($res)) {
             if (!$row['isocode']) {
                 $this->customLogger->info($this->extKey . ' No ISO-code given for language with UID ' . $row['uid']);
             }
@@ -551,7 +557,7 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
             $staticInfoObj->init();
         }
         $languages = $staticInfoObj->initLanguages(
-            ' lg_collate_locale LIKE \'%_' . $this->getDB()->quoteStr(strtoupper($countryCode), 'static_languages') . '\' '
+            ' lg_collate_locale LIKE \'%_' . $this->getQueryBuilder()->quote(strtoupper($countryCode), MYSQLI_TYPE_STRING) . '\' '
         );
 
         return array_map('strtolower', array_keys($languages));
@@ -576,11 +582,12 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
     }
 
     /**
-     * @return DatabaseConnection
+     * @return QueryBuilder
      */
-    protected function getDB():DatabaseConnection
+    protected function getQueryBuilder(): QueryBuilder
     {
-        return $GLOBALS['TYPO3_DB'];
+        return GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('sys_language');
     }
 
     /**
