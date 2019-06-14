@@ -159,11 +159,14 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
             // If session key exists but no language GP var -
             // we should redirect client to selected language
             if (isset($languageSessionKey)) {
-                // Can redirect only in one tree method for now
-                if ($this->conf['useOneTreeMethod'] && is_numeric($languageSessionKey)) {
-                    $this->doRedirect((int)$languageSessionKey, $referrer);
 
-                    return '';
+                if($languageSessionKey !== $GLOBALS['TYPO3_REQUEST']->getAttribute('language')->getLanguageId()){
+                    // Can redirect only in one tree method for now
+                    if ($this->conf['useOneTreeMethod'] && is_numeric($languageSessionKey)) {
+                        $this->doRedirect((int)$languageSessionKey, $referrer);
+
+                        return '';
+                    }
                 }
 
                 return $content;
@@ -416,11 +419,15 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
         }
 
         $this->customLogger->info($this->extKey . ' Location to redirect to: ' . $locationURL);
+
         if (!$this->conf['dieAtEnd'] && ($preferredLanguageOrPageUid || $this->conf['forceRedirect'])) {
+
             $this->customLogger->info($this->extKey . ' Perform redirect');
             header('Location: ' . $locationURL);
             header('Connection: close');
+            header('X-' . $this->extKey . ': Redirected');
             header('X-Note: Redirect by rlmp_language_detection (' . $referrer . ')');
+
         }
 
         if ($preferredLanguageOrPageUid) {
@@ -478,13 +485,15 @@ class LanguageDetection extends AbstractPlugin  implements LoggerAwareInterface
             $availableLanguages[trim(strtolower($this->conf['defaultLang']))] = 0;
         }
 
-        $res = $this->getQueryBuilder()
+        $rows = $this->getQueryBuilder()
             ->select('sys.uid', 'static.lg_iso_2', 'static.lg_country_iso_2')
             ->from('sys_language', 'sys')
             ->join('sys', 'static_languages', 'static', 'sys.static_lang_isocode = static.uid')
-            ->execute();
+            ->execute()
+            ->fetchAll(\Doctrine\DBAL\FetchMode::ASSOCIATIVE);
 
-        while ($row = \mysqli_fetch_assoc($res)) {
+        foreach ($rows as $row) {
+
             if (!$row['isocode']) {
                 $this->customLogger->info($this->extKey . ' No ISO-code given for language with UID ' . $row['uid']);
             }
